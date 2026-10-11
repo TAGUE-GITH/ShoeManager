@@ -5,7 +5,8 @@ from .models import Brand, Category, Color, Product, ProductImage, Variant
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'parent', 'slug']
+    list_display = ['name', 'parent', 'position', 'slug']
+    list_editable = ['position']
     list_filter = ['parent']
     search_fields = ['name']
 

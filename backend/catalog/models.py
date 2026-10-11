@@ -33,10 +33,12 @@ class Category(models.Model):
         related_name='children',
         on_delete=models.PROTECT,
     )
+    # Ordre d'affichage choisi par le gerant (Hommes, Femmes, Enfants...)
+    position = models.PositiveSmallIntegerField(_('position'), default=0)
 
     class Meta:
         verbose_name = _('catégorie')
-        ordering = ['name']
+        ordering = ['position', 'name']
 
     def __str__(self):
         return f'{self.parent} › {self.name}' if self.parent else self.name

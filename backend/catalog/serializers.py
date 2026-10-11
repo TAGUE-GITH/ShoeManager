@@ -1,4 +1,5 @@
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -28,6 +29,12 @@ class ColorSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'hex_code']
 
 
+class SwatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = ['name', 'hex_code']
+
+
 class CategoryChildSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -45,7 +52,7 @@ class CategoryTreeSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'parent']
+        fields = ['id', 'name', 'slug', 'parent', 'position']
         read_only_fields = ['slug']
 
     def validate_parent(self, parent):
@@ -81,10 +88,11 @@ class ProductListSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     available_sizes = serializers.SerializerMethodField()
     in_stock = serializers.SerializerMethodField()
+    colors = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'slug', 'brand', 'category', 'price', 'image', 'available_sizes', 'in_stock']
+        fields = ['id', 'name', 'slug', 'brand', 'category', 'price', 'image', 'available_sizes', 'in_stock', 'colors']
 
     def get_image(self, product) -> str | None:
         first = next(iter(product.images.all()), None)
@@ -102,6 +110,12 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     def get_in_stock(self, product) -> bool:
         return bool(self._available_variants(product))
+
+    @extend_schema_field(SwatchSerializer(many=True))
+    def get_colors(self, product):
+        # Toutes les couleurs du modele (pastilles de la carte produit), sans doublon
+        colors = {v.color_id: v.color for v in product.variants.all()}
+        return SwatchSerializer(sorted(colors.values(), key=lambda c: c.name), many=True).data
 
 
 class ProductDetailSerializer(ProductListSerializer):

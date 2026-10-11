@@ -2,6 +2,7 @@
 
 import pytest
 
+from catalog.models import Category
 from catalog.tests.factories import brand, category, color, product, variant
 
 PRODUCTS_URL = '/api/products/'
@@ -87,6 +88,17 @@ class TestCatalogList:
         assert result['available_sizes'] == ['42']
         assert result['in_stock'] is True
 
+    def test_list_item_shows_the_colors_of_the_model(self, api):
+        item = product()
+        variant(item, size=42, color_=color('Noir', '#111827'))
+        variant(item, size=43, color_=color('Noir', '#111827'))
+        variant(item, size=42, color_=color('Blanc', '#f8fafc'), stock=0)
+
+        result = api.get(PRODUCTS_URL).data['results'][0]
+
+        # Toutes les couleurs du modele (meme epuisees), sans doublon, par ordre alphabetique
+        assert result['colors'] == [{'name': 'Blanc', 'hex_code': '#f8fafc'}, {'name': 'Noir', 'hex_code': '#111827'}]
+
 
 @pytest.mark.django_db
 class TestProductDetail:
@@ -121,6 +133,15 @@ class TestFilterOptions:
         assert response.status_code == 200
         assert [c['name'] for c in response.data] == ['Hommes']
         assert [c['name'] for c in response.data[0]['children']] == ['Baskets', 'Ville']
+
+    def test_categories_follow_the_order_chosen_by_the_manager(self, api):
+        Category.objects.create(name='Enfants', position=3)
+        Category.objects.create(name='Hommes', position=1)
+        Category.objects.create(name='Femmes', position=2)
+
+        response = api.get('/api/categories/')
+
+        assert [c['name'] for c in response.data] == ['Hommes', 'Femmes', 'Enfants']
 
     def test_brands_and_colors_are_public(self, api):
         brand('Puma')
