@@ -10,7 +10,10 @@ Projet full-stack réalisé en **équipe de 3**, en méthode **Agile (Scrum + Ka
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
 
-> **État du projet :** Sprint 4 en cours : tableau de bord et gestion de la boutique terminés, mise en ligne à venir.
+> **État du projet :** terminé et en ligne.
+
+**🔗 Essayer l'application : [shoe-manager.vercel.app](https://shoe-manager.vercel.app)** — boutons « Essayer » en client, vendeur ou gérant, sans créer de compte.
+API : [shoemanager-api.onrender.com/api/docs/](https://shoemanager-api.onrender.com/api/docs/) (documentation interactive). Hébergement gratuit : le premier chargement peut prendre une minute, le temps que le serveur se réveille.
 
 ![CI](https://github.com/TAGUE-GITH/ShoeManager/actions/workflows/ci.yml/badge.svg)
 
@@ -62,7 +65,7 @@ La boutique **FranckShoese** (Douala) gérait ses ventes sur un cahier et ses r�
 | 2 | Panier, commande en ligne (livraison ou retrait), suivi, traitement par la boutique, emails | ✅ |
 | 3 | Réservation 48 h avec expiration automatique, encaissement en boutique, caisse, reçu PDF | ✅ |
 | 4 | Tableau de bord du gérant, catalogue avec photos, alertes de stock, équipe, fiches clients, mot de passe oublié, comptes de démonstration | ✅ |
-| 5 | Mise en ligne (Render, Neon, Vercel, Brevo) : voir [DEPLOIEMENT.md](DEPLOIEMENT.md) | En cours |
+| 5 | Mise en ligne (Render, Neon, Vercel, Brevo) : voir [DEPLOIEMENT.md](DEPLOIEMENT.md) | ✅ |
 
 ## Lancer le projet en local
 

@@ -23,7 +23,7 @@ Navigateur ──► Vercel (site React) ──► Render (API Django, Docker) �
 | Variable | Valeur |
 |---|---|
 | `DATABASE_URL` | l'adresse copiée sur Neon |
-| `FRONTEND_URL` | l'adresse du site Vercel (étape 3), par exemple `https://shoemanager.vercel.app` |
+| `FRONTEND_URL` | l'adresse du site Vercel (étape 3), par exemple `https://shoe-manager.vercel.app` |
 | `CORS_ALLOWED_ORIGINS` | la même adresse que `FRONTEND_URL` |
 | `BREVO_API_KEY` | la clé de l'API Brevo (étape 4) |
 | `DEFAULT_FROM_EMAIL` | `FranckShoese <adresse-verifiee-sur-brevo>` |
