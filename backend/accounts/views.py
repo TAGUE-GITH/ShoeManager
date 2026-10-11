@@ -5,6 +5,7 @@ from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from catalog.demo import demo_email, seed
@@ -71,6 +72,8 @@ class PasswordResetRequestView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'password_reset'
     serializer_class = PasswordResetRequestSerializer
 
     def post(self, request):
@@ -103,6 +106,8 @@ class DemoView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'demo'
     serializer_class = DemoSerializer
 
     def post(self, request):

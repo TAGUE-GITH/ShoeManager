@@ -26,6 +26,10 @@ class ReservationViewSet(
 
     serializer_class = ReservationSerializer
 
+    def list(self, request, *args, **kwargs):
+        services.expire_reservations()
+        return super().list(request, *args, **kwargs)
+
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):  # generation de la documentation
             return Reservation.objects.none()
@@ -55,6 +59,11 @@ class ManageReservationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['status']
     queryset = Reservation.objects.select_related(*RELATED, 'sale').order_by('expires_at')
+
+    def list(self, request, *args, **kwargs):
+        # Pas de tache planifiee sur l'hebergement gratuit : les statuts sont mis a jour a la lecture
+        services.expire_reservations()
+        return super().list(request, *args, **kwargs)
 
     @extend_schema(request=HonorSerializer, responses=SaleSerializer)
     @action(detail=True, methods=['post'])

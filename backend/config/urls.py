@@ -8,6 +8,7 @@ from accounts.urls import manage as accounts_manage
 from catalog.urls import manage as catalog_manage
 from catalog.urls import shop as catalog_shop
 from catalog.views import ImageView
+from common.views import HealthView
 from orders.urls import manage as orders_manage
 from orders.urls import shop as orders_shop
 from reservations.urls import manage as reservations_manage
@@ -16,6 +17,7 @@ from sales.urls import manage as sales_manage
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/health/', HealthView.as_view(), name='health'),
     path('api/auth/', include('accounts.urls')),
     path('api/images/<int:pk>/', ImageView.as_view(), name='image'),
     path('api/', include(catalog_shop.urls)),

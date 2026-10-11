@@ -1,0 +1,35 @@
+# Configuration Render (Blueprint) : deploie l'API Django a partir de son Dockerfile
+services:
+  - type: web
+    name: shoemanager-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /api/health/
+    # Ne redeploie que si le backend change
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: DJANGO_DEBUG
+        value: 'false'
+      # Cle secrete aleatoire generee par Render
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: EMAIL_BACKEND
+        value: common.mail.BrevoEmailBackend
+      - key: DEMO_ENABLED
+        value: 'true'
+      # Valeurs propres a chaque installation : saisies dans le tableau de bord Render, jamais dans Git
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false

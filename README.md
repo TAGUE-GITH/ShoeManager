@@ -62,7 +62,7 @@ La boutique **FranckShoese** (Douala) gérait ses ventes sur un cahier et ses r�
 | 2 | Panier, commande en ligne (livraison ou retrait), suivi, traitement par la boutique, emails | ✅ |
 | 3 | Réservation 48 h avec expiration automatique, encaissement en boutique, caisse, reçu PDF | ✅ |
 | 4 | Tableau de bord du gérant, catalogue avec photos, alertes de stock, équipe, fiches clients, mot de passe oublié, comptes de démonstration | ✅ |
-| 5 | Mise en ligne (Render, Neon, Vercel, Brevo) | À venir |
+| 5 | Mise en ligne (Render, Neon, Vercel, Brevo) : voir [DEPLOIEMENT.md](DEPLOIEMENT.md) | En cours |
 
 ## Lancer le projet en local
 
@@ -92,14 +92,14 @@ npm install
 npm run dev
 ```
 
-Les réservations non honorées expirent automatiquement : en production, une tâche planifiée lance `python manage.py expire_reservations` toutes les 15 minutes (une réservation échue ne bloque déjà plus la paire avant ce passage).
+Les réservations non honorées expirent automatiquement : une réservation échue ne bloque plus la paire, et son statut passe à « Expirée » dès qu'une liste de réservations est consultée (la commande `python manage.py expire_reservations` peut aussi être planifiée).
 
 Comptes de démonstration créés par `seed_demo` (mot de passe `demo-franckshoese`) : `gerant@franckshoese.example`, `vendeur@franckshoese.example`, `client@franckshoese.example`.
 
 ## Tests
 
 ```bash
-cd backend && pytest       # API : 149 tests
+cd backend && pytest       # API :  tests
 cd frontend && npm test    # interface : 25 tests
 ```
 

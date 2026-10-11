@@ -115,6 +115,16 @@ class TestExpiration:
         assert Reservation.objects.get(id=old_id).status == ReservationStatus.EXPIREE
         assert Reservation.objects.get(id=recent_id).status == ReservationStatus.ACTIVE
 
+    def test_lists_show_expired_reservations_without_the_scheduled_task(self, client_for, pair):
+        """Sans tache planifiee (hebergement gratuit), les listes mettent les statuts a jour elles-memes."""
+        client = client_for(Role.CLIENT)
+        client.post(URL, {'variant': pair.id}, format='json')
+        Reservation.objects.update(expires_at=timezone.now() - timedelta(minutes=1))
+
+        assert client.get(URL).data['results'][0]['status'] == ReservationStatus.EXPIREE
+        staff = client_for(Role.VENDEUR).get(MANAGE_URL, {'status': ReservationStatus.ACTIVE})
+        assert staff.data['count'] == 0
+
     def test_expired_reservations_do_not_count_in_the_limit_of_three(self, client_for):
         client = client_for(Role.CLIENT)
         pairs = [variant(product(name=f'Modèle {i}'), stock=3) for i in range(4)]

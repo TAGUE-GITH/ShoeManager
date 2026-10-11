@@ -43,3 +43,11 @@ def client_for(make_user):
 def fast_password_hasher(settings):
     """Tests uniquement : hachage rapide des mots de passe (l'algorithme lent reste celui de la production)."""
     settings.PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """Compteurs de limitation des requetes remis a zero entre les tests."""
+    from django.core.cache import cache
+
+    cache.clear()
