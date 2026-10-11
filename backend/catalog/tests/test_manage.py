@@ -90,6 +90,38 @@ class TestProducts:
         assert Product.objects.filter(id=item.id).exists()
         assert api.get('/api/products/').data['count'] == 0
 
+    def test_search_products_by_name(self, client_for):
+        product(name='Stan Smith')
+        product(name='Air Force 1')
+
+        response = client_for(Role.GERANT).get('/api/manage/products/', {'search': 'stan'})
+
+        assert [p['name'] for p in response.data['results']] == ['Stan Smith']
+
+    def test_delete_a_product_never_sold(self, client_for):
+        item = product(name='Modèle raté')
+        variant(item, stock=4)
+
+        response = client_for(Role.GERANT).delete(f'/api/manage/products/{item.id}/')
+
+        assert response.status_code == 204
+        assert not Product.objects.filter(id=item.id).exists()
+
+    def test_a_product_already_ordered_cannot_be_deleted(self, client_for):
+        pair = variant(product(name='Stan Smith'), stock=4)
+        shopper = client_for(Role.CLIENT)
+        shopper.post('/api/cart/items/', {'variant': pair.id, 'quantity': 1}, format='json')
+        shopper.post(
+            '/api/orders/',
+            {'delivery_mode': 'RETRAIT', 'payment_method': 'EN_BOUTIQUE', 'phone': '690000000'},
+            format='json',
+        )
+
+        response = client_for(Role.GERANT).delete(f'/api/manage/products/{pair.product_id}/')
+
+        assert response.status_code == 400
+        assert 'masquez' in response.data['detail']
+
     def test_manager_list_includes_hidden_products(self, client_for):
         product(name='Brouillon', published=False)
 

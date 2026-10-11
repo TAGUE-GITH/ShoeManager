@@ -68,7 +68,7 @@ En tant que client, je veux ajouter des paires à mon panier.
 **US-10 — Passer commande** · M · 8 pts
 En tant que client, je veux valider mon panier avec livraison ou retrait en boutique.
 - Le stock disponible est vérifié **au moment de la validation**, dans une transaction (R3) ;
-- Les prix sont figés dans la commande (R7) ; les frais de livraison sont calculés selon la zone (R8) ;
+- Les prix sont figés dans la commande (R7) ; les frais de livraison valent 10 % du montant des chaussures (R8) ;
 - Paiement : à la livraison, en boutique ou Mobile Money (simulé) ;
 - La commande est créée au statut `EN_ATTENTE` et un email de confirmation est envoyé.
 
@@ -140,6 +140,8 @@ En tant que vendeur, je veux consulter l'historique d'un client et ses points de
 
 **US-22 — Compte de démonstration** · S · 3 pts
 En tant que recruteur, je veux tester l'application sans créer de compte (boutique remplie de produits fictifs).
+- Démonstration publique en **client** seulement : un vendeur ou un gérant public pourrait modifier la vraie boutique ;
+- En production, les comptes de démonstration n'ont pas de mot de passe.
 
 **US-23 — Français / anglais** · C · 3 pts
 En tant qu'utilisateur, je veux choisir la langue de l'interface.

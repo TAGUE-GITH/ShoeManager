@@ -446,6 +446,7 @@ export function ProductEditorPage() {
   const navigate = useNavigate()
   const isNew = id === 'nouveau'
   const [version, setVersion] = useState(0)
+  const [deleteError, setDeleteError] = useState('')
   const {
     data: product,
     loading,
@@ -456,14 +457,38 @@ export function ProductEditorPage() {
   // Juste apres la creation, l'adresse change avant que le produit ne soit charge
   if ((loading || !isNew) && !product) return <Loader />
 
+  const remove = async () => {
+    if (!window.confirm(t('catalogAdmin.confirmDelete', { name: product.name }))) return
+    setDeleteError('')
+    try {
+      await manageApi.deleteProduct(product.id)
+      navigate('/gestion/catalogue', { replace: true })
+    } catch (err) {
+      setDeleteError(err.response?.data?.detail ?? errorMessage(err))
+    }
+  }
+
   return (
     <>
       <Link to="/gestion/catalogue" className="text-sm font-semibold text-brand-700 hover:underline">
         ← {t('catalogAdmin.back')}
       </Link>
-      <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-ink">
-        {isNew ? t('catalogAdmin.new') : product.name}
-      </h1>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold tracking-tight text-ink">
+          {isNew ? t('catalogAdmin.new') : product.name}
+        </h1>
+        {product && (
+          <Button variant="ghost" onClick={remove} className="text-red-700 hover:bg-red-50">
+            <Trash2 className="size-4" aria-hidden />
+            {t('catalogAdmin.delete')}
+          </Button>
+        )}
+      </div>
+      {deleteError && (
+        <div className="mt-3">
+          <Alert>{deleteError}</Alert>
+        </div>
+      )}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <ProductForm
           key={product?.id ?? 'new'}

@@ -2,6 +2,7 @@ from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
 from common.permissions import IsStaffMember
@@ -43,8 +44,9 @@ class ManageOrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, views
 
     permission_classes = [IsStaffMember]
     serializer_class = ManageOrderSerializer
-    filter_backends = [filters.DjangoFilterBackend]
+    filter_backends = [filters.DjangoFilterBackend, SearchFilter]
     filterset_fields = ['status', 'delivery_mode']
+    search_fields = ['reference', 'customer__email', 'customer__first_name', 'customer__last_name', 'phone']
     queryset = Order.objects.select_related('customer').prefetch_related(*ORDER_PREFETCH)
 
     @extend_schema(request=ChangeStatusSerializer, responses=ManageOrderSerializer)

@@ -1,4 +1,4 @@
-import { Phone } from 'lucide-react'
+import { Phone, Search } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { errorMessage } from '../api/client'
@@ -34,14 +34,23 @@ function ManagedOrder({ order: initial }) {
         <div>
           <p className="font-bold text-ink">{order.reference}</p>
           <p className="text-sm text-stone-500">
-            {new Date(order.created_at).toLocaleString(i18n.language === 'en' ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}
+            {new Date(order.created_at).toLocaleString(i18n.language === 'en' ? 'en-US' : 'fr-FR', {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            })}
           </p>
           <p className="mt-1 text-sm text-stone-700">
-            {order.customer.name} · <a href={`tel:${order.phone}`} className="inline-flex items-center gap-1 text-brand-700"><Phone className="size-3.5" aria-hidden />{order.phone}</a>
+            {order.customer.name} ·{' '}
+            <a href={`tel:${order.phone}`} className="inline-flex items-center gap-1 text-brand-700">
+              <Phone className="size-3.5" aria-hidden />
+              {order.phone}
+            </a>
           </p>
           <p className="text-sm text-stone-500">
-            {order.delivery_mode === 'LIVRAISON' ? `${t('checkout.delivery')} · ${order.delivery_address}` : t('checkout.pickup')} ·{' '}
-            {t(`checkout.payments.${order.payment_method}`)} {order.is_paid && `(${t('orders.paid')})`}
+            {order.delivery_mode === 'LIVRAISON'
+              ? `${t('checkout.delivery')} · ${order.delivery_address}`
+              : t('checkout.pickup')}{' '}
+            · {t(`checkout.payments.${order.payment_method}`)} {order.is_paid && `(${t('orders.paid')})`}
           </p>
         </div>
         <StatusBadge status={order.status} />
@@ -74,11 +83,35 @@ function ManagedOrder({ order: initial }) {
 export default function ManageOrdersPage() {
   const { t } = useTranslation()
   const [status, setStatus] = useState('EN_ATTENTE')
-  const { data, loading, error } = useFetch(() => manageOrdersApi.list(status ? { status } : {}), status)
+  const [query, setQuery] = useState('')
+  const [search, setSearch] = useState('')
+  const params = { ...(status ? { status } : {}), ...(search ? { search } : {}) }
+  const { data, loading, error } = useFetch(() => manageOrdersApi.list(params), `${status}-${search}`)
 
   return (
     <>
       <h1 className="sr-only">{t('manage.ordersTitle')}</h1>
+      <form
+        role="search"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setSearch(query.trim())
+        }}
+        className="relative mb-4 max-w-md"
+      >
+        <Search
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400"
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t('manage.searchOrdersPlaceholder')}
+          aria-label={t('manage.searchOrders')}
+          className="w-full rounded-xl border border-stone-300 bg-white py-2.5 pr-3 pl-9 text-sm"
+        />
+      </form>
       <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label={t('manage.filter')}>
         {FILTERS.map((value) => (
           <button
@@ -88,7 +121,9 @@ export default function ManageOrdersPage() {
             aria-selected={status === value}
             onClick={() => setStatus(value)}
             className={`shrink-0 rounded-xl px-3.5 py-2 text-sm font-semibold ring-1 ${
-              status === value ? 'bg-ink text-white ring-ink' : 'bg-white text-stone-700 ring-stone-300 hover:ring-stone-500'
+              status === value
+                ? 'bg-ink text-white ring-ink'
+                : 'bg-white text-stone-700 ring-stone-300 hover:ring-stone-500'
             }`}
           >
             {value ? t(`orders.status.${value}`) : t('manage.all')}

@@ -13,7 +13,7 @@ export function CartProvider({ children }) {
   const cart = user ? loaded : EMPTY
 
   const refresh = useCallback(async () => {
-    if (user) setLoaded(await cartApi.get())
+    if (user) setLoaded({ ...(await cartApi.get()), ready: true })
   }, [user])
 
   // Chargement du panier a la connexion ; une reponse arrivee apres une deconnexion est ignoree
@@ -22,29 +22,43 @@ export function CartProvider({ children }) {
     let active = true
     cartApi
       .get()
-      .then((data) => active && setLoaded(data))
+      .then((data) => active && setLoaded({ ...data, ready: true }))
       .catch(() => {})
     return () => {
       active = false
     }
   }, [user])
 
-  const add = useCallback(async (variantId, quantity = 1) => {
-    await cartApi.add(variantId, quantity)
-    await refresh()
-  }, [refresh])
+  const add = useCallback(
+    async (variantId, quantity = 1) => {
+      await cartApi.add(variantId, quantity)
+      await refresh()
+    },
+    [refresh],
+  )
 
-  const update = useCallback(async (itemId, quantity) => {
-    await cartApi.update(itemId, quantity)
-    await refresh()
-  }, [refresh])
+  const update = useCallback(
+    async (itemId, quantity) => {
+      await cartApi.update(itemId, quantity)
+      await refresh()
+    },
+    [refresh],
+  )
 
-  const remove = useCallback(async (itemId) => {
-    await cartApi.remove(itemId)
-    await refresh()
-  }, [refresh])
+  const remove = useCallback(
+    async (itemId) => {
+      await cartApi.remove(itemId)
+      await refresh()
+    },
+    [refresh],
+  )
 
-  const value = useMemo(() => ({ cart, refresh, add, update, remove }), [cart, refresh, add, update, remove])
+  // Faux tant que le panier de l'utilisateur connecte n'est pas encore arrive (page ouverte directement)
+  const ready = !user || Boolean(loaded.ready)
+  const value = useMemo(
+    () => ({ cart, ready, refresh, add, update, remove }),
+    [cart, ready, refresh, add, update, remove],
+  )
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 

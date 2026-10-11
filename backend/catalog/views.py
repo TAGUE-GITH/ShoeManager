@@ -120,8 +120,12 @@ class ManageColorViewSet(ProtectedDeleteMixin, viewsets.ModelViewSet):
     protected_message = 'Cette couleur est utilisée par des déclinaisons.'
 
 
-class ManageProductViewSet(viewsets.ModelViewSet):
+class ManageProductViewSet(ProtectedDeleteMixin, viewsets.ModelViewSet):
     """US-06 : produits, y compris ceux masques de la boutique."""
+
+    protected_message = (
+        'Ce produit a déjà été commandé, réservé ou vendu : masquez-le de la boutique plutôt que de le supprimer.'
+    )
 
     permission_classes = [IsManager]
     serializer_class = ManageProductSerializer

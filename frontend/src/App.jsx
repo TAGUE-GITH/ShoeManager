@@ -20,6 +20,7 @@ import TillPage from './pages/TillPage'
 // Pages du gerant chargees a la demande : les graphiques ne pesent pas sur la boutique
 const DashboardPage = lazy(() => import('./pages/manage/DashboardPage'))
 const StockPage = lazy(() => import('./pages/manage/StockPage'))
+const CategoriesPage = lazy(() => import('./pages/manage/CategoriesPage'))
 const ManageCatalogPage = lazy(() =>
   import('./pages/manage/CatalogPages').then((m) => ({ default: m.ManageCatalogPage })),
 )
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="catalogue" element={manager(<ManageCatalogPage />)} />
           <Route path="catalogue/:id" element={manager(<ProductEditorPage />)} />
           <Route path="stock" element={manager(<StockPage />)} />
+          <Route path="categories" element={manager(<CategoriesPage />)} />
           <Route
             path="clients"
             element={

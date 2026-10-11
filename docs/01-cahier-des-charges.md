@@ -85,7 +85,7 @@ Développer une application web qui permet à la boutique de :
 - **R5.** Statuts : `EN_ATTENTE → CONFIRMEE → EN_PREPARATION → EXPEDIEE (livraison) ou PRETE (retrait) → LIVREE`. Une commande peut être `ANNULEE` tant qu'elle n'est pas expédiée ou prête.
 - **R6.** Le stock physique diminue au passage `EN_PREPARATION` ; une annulation avant ce statut libère simplement la quantité retenue.
 - **R7.** Le **prix est figé** dans la commande au moment de la validation (un changement de prix ultérieur ne modifie pas les commandes passées).
-- **R8.** Frais de livraison : forfait selon la zone (Douala : 1 000 XAF ; autres villes : 3 000 XAF) ; retrait en boutique gratuit.
+- **R8.** Frais de livraison : 10 % du montant des chaussures (10 000 XAF → 1 000 XAF), arrondis au franc ; retrait en boutique gratuit.
 
 ### Réservations
 

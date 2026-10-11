@@ -8,6 +8,7 @@ par role (adresses en .example : aucun email reel). Peut etre relance sans doubl
 import random
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import transaction
 
 from accounts.models import Role, User
@@ -161,7 +162,14 @@ def seed():
 
     for role, login, first_name, last_name in ACCOUNTS:
         email = f'{login}@franckshoese.example'
+        # En production : seul le client de demonstration existe, et sans mot de passe (bouton « Essayer » seulement)
+        if role != Role.CLIENT and not settings.DEBUG:
+            continue
         if not User.objects.filter(email=email).exists():
             User.objects.create_user(
-                email=email, password=DEMO_PASSWORD, role=role, first_name=first_name, last_name=last_name
+                email=email,
+                password=DEMO_PASSWORD if settings.DEBUG else None,
+                role=role,
+                first_name=first_name,
+                last_name=last_name,
             )

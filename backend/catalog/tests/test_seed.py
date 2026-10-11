@@ -19,11 +19,19 @@ class TestSeedDemo:
         assert all(p.variants.count() >= 3 for p in Product.objects.all())
         assert Variant.objects.filter(stock=0).exists()
 
-    def test_creates_one_account_per_role(self):
+    def test_creates_one_account_per_role_for_local_development(self, settings):
+        settings.DEBUG = True
         call_command('seed_demo', verbosity=0)
 
         for role in Role.values:
             assert User.objects.filter(role=role, email__endswith='@franckshoese.example').exists()
+
+    def test_only_the_demo_customer_exists_in_production(self, settings):
+        settings.DEBUG = False
+        call_command('seed_demo', verbosity=0)
+
+        demo = User.objects.filter(email__endswith='@franckshoese.example')
+        assert list(demo.values_list('role', flat=True)) == [Role.CLIENT]
 
     def test_can_be_run_twice_without_duplicates(self):
         call_command('seed_demo', verbosity=0)

@@ -15,7 +15,7 @@ from catalog.models import Variant, format_size
 from catalog.stock import check_available, lock_variants
 
 from .emails import send_order_email
-from .models import DELIVERY_FEES, DeliveryMode, Order, OrderItem, OrderStatus, PaymentMethod
+from .models import DeliveryMode, Order, OrderItem, OrderStatus, PaymentMethod, delivery_fee_for
 
 # R5 : etapes autorisees depuis chaque statut
 TRANSITIONS = {
@@ -54,7 +54,7 @@ def place_order(user, *, delivery_mode, payment_method, phone, delivery_zone='',
     )
 
     subtotal = sum(item.variant.product.price * item.quantity for item in items)
-    delivery_fee = DELIVERY_FEES[delivery_zone] if delivery_mode == DeliveryMode.LIVRAISON else 0
+    delivery_fee = delivery_fee_for(subtotal) if delivery_mode == DeliveryMode.LIVRAISON else 0
     order = Order.objects.create(
         customer=user,
         delivery_mode=delivery_mode,

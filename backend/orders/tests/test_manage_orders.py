@@ -47,6 +47,18 @@ class TestAccess:
         assert client_for(Role.VENDEUR).get(MANAGE_URL).data['count'] == 1
         assert client_for(Role.GERANT).get(MANAGE_URL).data['count'] == 1
 
+    def test_search_by_reference_or_customer(self, client_for, make_user, pair):
+        from rest_framework.test import APIClient
+
+        awa = APIClient()
+        awa.force_authenticate(make_user(role=Role.CLIENT, email='awa@test.cm', last_name='Ngono'))
+        order = place(awa, pair)
+        place(client_for(Role.CLIENT), pair)
+        staff = client_for(Role.VENDEUR)
+
+        assert [o['id'] for o in staff.get(MANAGE_URL, {'search': 'ngono'}).data['results']] == [order.id]
+        assert [o['id'] for o in staff.get(MANAGE_URL, {'search': order.reference}).data['results']] == [order.id]
+
     def test_filter_by_status(self, client_for, pair):
         order = place(client_for(Role.CLIENT), pair, quantity=1)
         place(client_for(Role.CLIENT), pair, quantity=1)

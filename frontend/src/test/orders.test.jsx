@@ -4,10 +4,10 @@ import { OrderTimeline } from '../components/orders'
 import { deliveryFee, orderSteps, paymentOptions } from '../utils/orders'
 
 describe('regles d affichage des commandes', () => {
-  it('calcule les frais de livraison selon la zone, retrait gratuit (R8)', () => {
-    expect(deliveryFee('LIVRAISON', 'DOUALA')).toBe(1000)
-    expect(deliveryFee('LIVRAISON', 'AUTRE_VILLE')).toBe(3000)
-    expect(deliveryFee('RETRAIT', 'DOUALA')).toBe(0)
+  it('calcule la livraison a 10 % du montant des chaussures, retrait gratuit (R8)', () => {
+    expect(deliveryFee('LIVRAISON', 10000)).toBe(1000)
+    expect(deliveryFee('LIVRAISON', '12345')).toBe(1235)
+    expect(deliveryFee('RETRAIT', 10000)).toBe(0)
   })
 
   it('propose les moyens de paiement compatibles avec le mode de reception', () => {

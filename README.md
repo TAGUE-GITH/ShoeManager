@@ -12,7 +12,7 @@ Projet full-stack réalisé en **équipe de 3**, en méthode **Agile (Scrum + Ka
 
 > **État du projet :** terminé et en ligne.
 
-**🔗 Essayer l'application : [shoe-manager.vercel.app](https://shoe-manager.vercel.app)** — boutons « Essayer » en client, vendeur ou gérant, sans créer de compte.
+**🔗 Essayer l'application : [shoe-manager.vercel.app](https://shoe-manager.vercel.app)** — bouton « Essayer en client », sans créer de compte. L'espace boutique (gérant, vendeurs) est réservé au personnel : la boutique en ligne est réelle.
 API : [shoemanager-api.onrender.com/api/docs/](https://shoemanager-api.onrender.com/api/docs/) (documentation interactive). Hébergement gratuit : le premier chargement peut prendre une minute, le temps que le serveur se réveille.
 
 ![CI](https://github.com/TAGUE-GITH/ShoeManager/actions/workflows/ci.yml/badge.svg)
@@ -21,17 +21,18 @@ API : [shoemanager-api.onrender.com/api/docs/](https://shoemanager-api.onrender.
 
 La boutique **FranckShoese** (Douala) gérait ses ventes sur un cahier et ses réservations par WhatsApp : paires vendues deux fois, stock inexact, aucune vente possible en dehors des heures d'ouverture. ShoeManager **centralise les données**, permet de **vendre et réserver en ligne** et **automatise** la gestion du stock.
 
-## Fonctionnalités prévues
+## Fonctionnalités
 
 **Pour les clients**
 - Catalogue par catégories (Hommes › Baskets, Femmes › Sandales…), filtres par pointure, couleur, marque et prix
-- Panier et commande en ligne : livraison ou retrait en boutique
+- Panier et commande en ligne : livraison (10 % du montant des chaussures) ou retrait gratuit en boutique
 - Réservation d'une paire pour l'essayer en boutique (bloquée 48 h, expiration automatique)
 - Suivi des commandes, points de fidélité
 
 **Pour la boutique**
-- Produits, déclinaisons (pointure + couleur) et stock, alertes de stock bas
-- Traitement des commandes et des réservations
+- Produits (ajout, modification, photos, suppression), catégories, déclinaisons (pointure + couleur) et stock, alertes de stock bas
+- Traitement des commandes (recherche par référence ou client) et des réservations
+- Clients : rôle (client, vendeur, gérant), blocage, suppression ; équipe avec invitation par email
 - Caisse en boutique avec reçu PDF
 - Tableau de bord : chiffre d'affaires, meilleures ventes, pointures les plus demandées
 
@@ -97,13 +98,13 @@ npm run dev
 
 Les réservations non honorées expirent automatiquement : une réservation échue ne bloque plus la paire, et son statut passe à « Expirée » dès qu'une liste de réservations est consultée (la commande `python manage.py expire_reservations` peut aussi être planifiée).
 
-Comptes de démonstration créés par `seed_demo` (mot de passe `demo-franckshoese`) : `gerant@franckshoese.example`, `vendeur@franckshoese.example`, `client@franckshoese.example`.
+Comptes de démonstration **en local uniquement** (créés par `seed_demo`, mot de passe `demo-franckshoese`) : `gerant@franckshoese.example`, `vendeur@franckshoese.example`, `client@franckshoese.example`. En production, seul le client de démonstration existe, sans mot de passe (bouton « Essayer »), et le gérant est le compte désigné par `MANAGER_EMAIL` (voir [DEPLOIEMENT.md](DEPLOIEMENT.md)).
 
 ## Tests
 
 ```bash
-cd backend && pytest       # API : 157 tests
-cd frontend && npm test    # interface : 25 tests
+cd backend && pytest       # API : 170 tests
+cd frontend && npm test    # interface : 27 tests
 ```
 
 Les tests sont écrits avant le code (TDD), à partir des critères d'acceptation des user stories. GitHub Actions les exécute à chaque envoi, avec une vraie base PostgreSQL.

@@ -1,4 +1,4 @@
-import { Search, UserPlus } from 'lucide-react'
+import { Ban, CheckCircle2, Search, Trash2, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { errorMessage, fieldErrors } from '../../api/client'
@@ -114,12 +114,83 @@ export function TeamPage() {
   )
 }
 
-// US-21 : fiches clients (gerant et vendeurs)
+// Actions du gerant sur un compte client : role, blocage, suppression
+function CustomerActions({ customer, onChange, onError }) {
+  const { t } = useTranslation()
+  const [busy, setBusy] = useState(false)
+
+  const run = async (action) => {
+    setBusy(true)
+    onError('')
+    try {
+      await action()
+      onChange()
+    } catch (err) {
+      onError(err.response?.data?.detail ?? errorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const name = `${customer.first_name} ${customer.last_name}`
+  return (
+    <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+      <select
+        value={customer.role}
+        disabled={busy}
+        onChange={(event) => {
+          const role = event.target.value
+          if (window.confirm(t('customers.confirmRole', { name, role: t(`roles.${role}`) })))
+            run(() => manageApi.updateCustomer(customer.id, { role }))
+        }}
+        aria-label={t('team.roleOf', { name: customer.first_name })}
+        className="rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-sm"
+      >
+        {['CLIENT', 'VENDEUR', 'GERANT'].map((role) => (
+          <option key={role} value={role}>
+            {t(`roles.${role}`)}
+          </option>
+        ))}
+      </select>
+      <Button
+        variant="ghost"
+        disabled={busy}
+        onClick={() => run(() => manageApi.updateCustomer(customer.id, { is_active: !customer.is_active }))}
+        className="px-3 py-1.5"
+      >
+        {customer.is_active ? <Ban className="size-4" aria-hidden /> : <CheckCircle2 className="size-4" aria-hidden />}
+        {customer.is_active ? t('customers.block') : t('customers.unblock')}
+      </Button>
+      <Button
+        variant="ghost"
+        disabled={busy}
+        onClick={() =>
+          window.confirm(t('customers.confirmDelete', { name })) && run(() => manageApi.deleteCustomer(customer.id))
+        }
+        className="px-3 py-1.5 text-red-700 hover:bg-red-50"
+        aria-label={t('customers.deleteOf', { name })}
+      >
+        <Trash2 className="size-4" aria-hidden />
+      </Button>
+    </div>
+  )
+}
+
+// US-21 : fiches clients (gerant et vendeurs) ; le gerant donne un role, bloque ou supprime un compte
 export function CustomersPage() {
   const { t, i18n } = useTranslation()
+  const { user } = useAuth()
+  const isManager = user.role === 'GERANT'
   const [query, setQuery] = useState('')
   const [search, setSearch] = useState('')
-  const { data, loading, error } = useFetch(() => manageApi.customers(search ? { search } : {}), `customers-${search}`)
+  const [version, setVersion] = useState(0)
+  const [actionError, setActionError] = useState('')
+  const { data, loading, error } = useFetch(
+    () => manageApi.customers(search ? { search } : {}),
+    `customers-${search}-${version}`,
+  )
+  const since = (date) =>
+    new Date(date).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR', { month: 'long', year: 'numeric' })
 
   return (
     <>
@@ -145,10 +216,13 @@ export function CustomersPage() {
           className="w-full rounded-xl border border-stone-300 bg-white py-2.5 pr-3 pl-9 text-sm"
         />
       </form>
-      {loading && <Loader />}
-      <Alert>{error}</Alert>
+      {isManager && <p className="mt-3 text-sm text-stone-500">{t('customers.managerHint')}</p>}
+      {loading && !data && <Loader />}
+      <div className="mt-3">
+        <Alert>{error || actionError}</Alert>
+      </div>
       {data && (
-        <div className="mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-stone-200">
+        <div className="relative mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-stone-200">
           <table className="w-full text-left text-sm">
             <thead className="bg-stone-50 text-xs font-semibold text-stone-500 uppercase">
               <tr>
@@ -167,29 +241,42 @@ export function CustomersPage() {
                 <th scope="col" className="px-4 py-3 text-right">
                   {t('customers.points')}
                 </th>
+                {isManager && (
+                  <th scope="col" className="px-4 py-3 text-right">
+                    {t('catalogAdmin.actions')}
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {data.results.map((customer) => (
-                <tr key={customer.id}>
+                <tr key={customer.id} className={customer.is_active ? '' : 'bg-stone-50'}>
                   <td className="px-4 py-3">
                     <p className="font-semibold text-ink">
-                      {customer.first_name} {customer.last_name}
+                      {customer.first_name} {customer.last_name}{' '}
+                      {!customer.is_active && (
+                        <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800">
+                          {t('customers.blocked')}
+                        </span>
+                      )}
                     </p>
                     <p className="text-xs text-stone-500">
-                      {customer.email} ·{' '}
-                      {t('customers.since', {
-                        date: new Date(customer.date_joined).toLocaleDateString(
-                          i18n.language === 'en' ? 'en-US' : 'fr-FR',
-                          { month: 'long', year: 'numeric' },
-                        ),
-                      })}
+                      {customer.email} · {t('customers.since', { date: since(customer.date_joined) })}
                     </p>
                   </td>
                   <td className="px-4 py-3">{customer.phone || '—'}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{customer.orders_count}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{customer.purchases_count}</td>
                   <td className="px-4 py-3 text-right font-semibold tabular-nums">{customer.loyalty_points}</td>
+                  {isManager && (
+                    <td className="px-4 py-3">
+                      <CustomerActions
+                        customer={customer}
+                        onChange={() => setVersion((v) => v + 1)}
+                        onError={setActionError}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

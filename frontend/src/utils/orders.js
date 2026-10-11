@@ -1,10 +1,10 @@
 // Regles d'affichage des commandes (le serveur reste la reference : il refait tous les calculs)
 
-// Regle R8 : frais de livraison par zone, retrait gratuit
-export const DELIVERY_FEES = { DOUALA: 1000, AUTRE_VILLE: 3000 }
+// Regle R8 : livraison = 10 % du montant des chaussures (10 000 FCFA -> 1 000 FCFA), retrait gratuit
+export const DELIVERY_RATE = 0.1
 
-export function deliveryFee(mode, zone) {
-  return mode === 'LIVRAISON' ? (DELIVERY_FEES[zone] ?? 0) : 0
+export function deliveryFee(mode, subtotal) {
+  return mode === 'LIVRAISON' ? Math.round(Number(subtotal) * DELIVERY_RATE) : 0
 }
 
 // Moyens de paiement possibles selon le mode de reception

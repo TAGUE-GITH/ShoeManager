@@ -1,4 +1,4 @@
-import { ShoppingBag, Store, UserCog } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import { startTransition, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -7,7 +7,7 @@ import { accountApi } from '../api/resources'
 import { useAuth } from '../context/AuthProvider'
 import { Alert, Button } from './ui'
 
-// US-22 : essayer l'application sans compte, en client, vendeur ou gerant
+// US-22 : essayer la boutique sans creer de compte
 export default function DemoButtons({ dark = false }) {
   const { t } = useTranslation()
   const { openSession } = useAuth()
@@ -15,11 +15,8 @@ export default function DemoButtons({ dark = false }) {
   const [pending, setPending] = useState('')
   const [error, setError] = useState('')
 
-  const roles = [
-    { role: 'CLIENT', Icon: ShoppingBag, to: '/catalogue' },
-    { role: 'VENDEUR', Icon: Store, to: '/gestion/caisse' },
-    { role: 'GERANT', Icon: UserCog, to: '/gestion/tableau-de-bord' },
-  ]
+  // Client uniquement : un vendeur ou un gerant public pourrait modifier la vraie boutique
+  const roles = [{ role: 'CLIENT', Icon: ShoppingBag, to: '/catalogue' }]
 
   const start = async (role, to) => {
     setPending(role)

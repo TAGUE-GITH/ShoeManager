@@ -148,12 +148,17 @@ class CustomerSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'phone',
+            'role',
+            'is_active',
             'loyalty_points',
             'date_joined',
             'orders_count',
             'purchases_count',
         ]
+        # Le gerant change seulement le role (client -> vendeur ou gerant) et bloque ou debloque le compte
+        read_only_fields = ['email', 'first_name', 'last_name', 'phone', 'loyalty_points', 'date_joined']
 
 
 class DemoSerializer(serializers.Serializer):
-    role = serializers.ChoiceField(choices=Role.choices, default=Role.CLIENT)
+    # Pas de vendeur ni de gerant publics : ils pourraient modifier la vraie boutique
+    role = serializers.ChoiceField(choices=[(Role.CLIENT, Role.CLIENT.label)], default=Role.CLIENT)

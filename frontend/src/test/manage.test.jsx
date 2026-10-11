@@ -7,10 +7,11 @@ import DemoButtons from '../components/DemoButtons'
 import ManageLayout, { manageHome } from '../components/ManageLayout'
 import { useAuth } from '../context/AuthProvider'
 import StockPage from '../pages/manage/StockPage'
+import { CustomersPage } from '../pages/manage/TeamPages'
 
 vi.mock('../api/resources', () => ({
   accountApi: { demo: vi.fn() },
-  manageApi: { stockAlerts: vi.fn(), updateVariant: vi.fn() },
+  manageApi: { stockAlerts: vi.fn(), updateVariant: vi.fn(), customers: vi.fn(), updateCustomer: vi.fn() },
 }))
 vi.mock('../context/AuthProvider', () => ({ useAuth: vi.fn() }))
 
@@ -37,6 +38,7 @@ describe('Espace boutique', () => {
       'Réservations',
       'Caisse',
       'Catalogue',
+      'Catégories',
       'Stock bas',
       'Clients',
       'Équipe',
@@ -50,24 +52,25 @@ describe('Espace boutique', () => {
 })
 
 describe('DemoButtons', () => {
-  it('ouvre une session de demonstration et va sur la page du role', async () => {
+  it('ouvre une session de demonstration client et va au catalogue', async () => {
     const openSession = vi.fn()
     useAuth.mockReturnValue({ openSession })
-    accountApi.demo.mockResolvedValue({ access: 'a', refresh: 'r', user: { role: 'GERANT' } })
+    accountApi.demo.mockResolvedValue({ access: 'a', refresh: 'r', user: { role: 'CLIENT' } })
     render(
       <MemoryRouter>
         <Routes>
           <Route path="/" element={<DemoButtons />} />
-          <Route path="/gestion/tableau-de-bord" element={<p>Tableau du gérant</p>} />
+          <Route path="/catalogue" element={<p>Catalogue</p>} />
         </Routes>
       </MemoryRouter>,
     )
 
-    await userEvent.click(screen.getByRole('button', { name: 'En gérant' }))
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Essayer en client' }))
 
-    expect(accountApi.demo).toHaveBeenCalledWith('GERANT')
+    expect(accountApi.demo).toHaveBeenCalledWith('CLIENT')
     expect(openSession).toHaveBeenCalledWith(expect.objectContaining({ access: 'a' }))
-    expect(await screen.findByText('Tableau du gérant')).toBeInTheDocument()
+    expect(await screen.findByText('Catalogue')).toBeInTheDocument()
   })
 })
 
@@ -95,5 +98,45 @@ describe('StockPage', () => {
 
     expect(manageApi.updateVariant).toHaveBeenCalledWith(7, { stock: 7 })
     expect(manageApi.stockAlerts).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('CustomersPage', () => {
+  const awa = {
+    id: 4,
+    email: 'awa@test.cm',
+    first_name: 'Awa',
+    last_name: 'Ngono',
+    phone: '',
+    role: 'CLIENT',
+    is_active: true,
+    loyalty_points: 12,
+    date_joined: '2026-01-05T10:00:00Z',
+    orders_count: 2,
+    purchases_count: 0,
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    manageApi.customers.mockResolvedValue({ count: 1, results: [awa] })
+  })
+
+  it('le gerant bloque un client', async () => {
+    useAuth.mockReturnValue({ user: { role: 'GERANT' } })
+    manageApi.updateCustomer.mockResolvedValue({ ...awa, is_active: false })
+    render(<CustomersPage />, { wrapper: MemoryRouter })
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Bloquer' }))
+
+    expect(manageApi.updateCustomer).toHaveBeenCalledWith(4, { is_active: false })
+    expect(manageApi.customers).toHaveBeenCalledTimes(2)
+  })
+
+  it('le vendeur consulte les fiches sans pouvoir les modifier', async () => {
+    useAuth.mockReturnValue({ user: { role: 'VENDEUR' } })
+    render(<CustomersPage />, { wrapper: MemoryRouter })
+
+    expect(await screen.findByText('awa@test.cm', { exact: false })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Bloquer' })).not.toBeInTheDocument()
   })
 })

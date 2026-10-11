@@ -1,3 +1,5 @@
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -29,8 +31,12 @@ class DeliveryZone(models.TextChoices):
     AUTRE_VILLE = 'AUTRE_VILLE', _('Autre ville')
 
 
-# Regle R8 : frais de livraison forfaitaires par zone (retrait gratuit)
-DELIVERY_FEES = {DeliveryZone.DOUALA: 1000, DeliveryZone.AUTRE_VILLE: 3000}
+# Regle R8 : frais de livraison = 10 % du montant des chaussures (10 000 FCFA -> 1 000 FCFA), retrait gratuit
+DELIVERY_RATE = Decimal('0.10')
+
+
+def delivery_fee_for(subtotal):
+    return (Decimal(subtotal) * DELIVERY_RATE).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
 
 
 class PaymentMethod(models.TextChoices):

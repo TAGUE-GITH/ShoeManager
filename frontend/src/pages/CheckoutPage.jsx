@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { errorMessage, fieldErrors } from '../api/client'
 import { ordersApi } from '../api/resources'
-import { Alert, Button, Field } from '../components/ui'
+import { Alert, Button, Field, Loader } from '../components/ui'
 import { useAuth } from '../context/AuthProvider'
 import { useCart } from '../context/CartProvider'
 import { formatPrice } from '../utils/format'
@@ -31,7 +31,7 @@ function Choice({ checked, onChange, name, value, title, text, Icon }) {
 export default function CheckoutPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
-  const { cart, refresh } = useCart()
+  const { cart, ready, refresh } = useCart()
   const navigate = useNavigate()
   const [form, setForm] = useState({
     delivery_mode: 'LIVRAISON',
@@ -44,11 +44,12 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState({})
   const [sending, setSending] = useState(false)
 
+  if (!ready) return <Loader />
   if (cart.items.length === 0 && !sending) return <Navigate to="/panier" replace />
 
   const set = (changes) => setForm((current) => ({ ...current, ...changes }))
   const changeMode = (mode) => set({ delivery_mode: mode, payment_method: paymentOptions(mode)[0] })
-  const fee = deliveryFee(form.delivery_mode, form.delivery_zone)
+  const fee = deliveryFee(form.delivery_mode, cart.total)
 
   const submit = async (event) => {
     event.preventDefault()
@@ -110,7 +111,7 @@ export default function CheckoutPage() {
                     checked={form.delivery_zone === zone}
                     onChange={() => set({ delivery_zone: zone })}
                     title={t(`checkout.zones.${zone}`)}
-                    text={formatPrice(deliveryFee('LIVRAISON', zone))}
+                    text={formatPrice(deliveryFee('LIVRAISON', cart.total))}
                   />
                 ))}
               </div>

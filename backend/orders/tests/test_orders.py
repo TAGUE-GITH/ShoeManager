@@ -65,9 +65,9 @@ class TestPlaceOrder:
 
     @pytest.mark.parametrize(
         'payload, fee',
-        [(delivery(), 1000), (delivery(delivery_zone='AUTRE_VILLE'), 3000), (pickup(), 0)],
+        [(delivery(), 13000), (delivery(delivery_zone='AUTRE_VILLE'), 13000), (pickup(), 0)],
     )
-    def test_delivery_fee_depends_on_the_zone(self, shopper, pair, payload, fee):
+    def test_delivery_fee_is_ten_percent_of_the_shoes(self, shopper, pair, payload, fee):
         fill_cart(shopper, pair, quantity=2)
 
         response = shopper.post(ORDERS_URL, payload, format='json')
@@ -75,6 +75,14 @@ class TestPlaceOrder:
         assert response.data['delivery_fee'] == str(fee)
         assert response.data['subtotal'] == '130000'
         assert response.data['total'] == str(130000 + fee)
+
+    def test_delivery_fee_is_rounded_to_the_franc(self, shopper):
+        cheap = variant(product(name='Tong', price=12345), size=40, color_=color('Noir'), stock=2)
+        fill_cart(shopper, cheap)
+
+        response = shopper.post(ORDERS_URL, delivery(), format='json')
+
+        assert response.data['delivery_fee'] == '1235'
 
     def test_price_is_frozen_in_the_order(self, shopper, pair):
         fill_cart(shopper, pair)

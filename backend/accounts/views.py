@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db.models import Count, Q
+from django.db.models import Count, ProtectedError, Q
 from django.utils.translation import gettext as _
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import NotFound
@@ -137,11 +137,30 @@ class TeamViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.UpdateM
         send_password_email(member, invitation=True)
 
 
-class CustomerViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    """US-21 : fiches clients (recherche par nom, email ou telephone) pour le gerant et les vendeurs."""
+class CustomerViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    US-21 : fiches clients (recherche par nom, email ou telephone) pour le gerant et les vendeurs.
+    Le gerant donne un role, bloque ou supprime un compte.
+    """
 
-    permission_classes = [IsStaffMember]
     serializer_class = CustomerSerializer
+    http_method_names = ['get', 'patch', 'delete']
+
+    def get_permissions(self):
+        return [IsStaffMember()] if self.action in ('list', 'retrieve') else [IsManager()]
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            message = _('Ce client a des commandes, réservations ou achats : bloquez-le plutôt que de le supprimer.')
+            return Response({'detail': message}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
         queryset = User.objects.filter(role=Role.CLIENT).annotate(
