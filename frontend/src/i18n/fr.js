@@ -208,6 +208,21 @@ export default {
     notPaid: 'À payer',
     cancel: 'Annuler la commande',
     confirmCancel: 'Voulez-vous vraiment annuler cette commande ?',
+    addTitle: 'Ajouter des paires à cette commande',
+    addHint:
+      'Possible tant que la commande n’est pas en préparation. Les frais de livraison sont recalculés sur le nouveau montant.',
+    quantity: 'Quantité',
+    addButton: 'Ajouter à la commande',
+    added_one: '{{label}} ajoutée à la commande.',
+    added_other: '{{count}} × {{label}} ajoutées à la commande.',
+    lockedHint:
+      'Cette commande est en préparation ou terminée : elle ne peut plus être modifiée. Vous pouvez commander à nouveau les mêmes paires.',
+    reorder: 'Commander à nouveau',
+    reordered_one: '{{count}} paire a été ajoutée à votre panier.',
+    reordered_other: '{{count}} paires ont été ajoutées à votre panier.',
+    nothingAvailable: 'Ces paires ne sont plus disponibles pour le moment.',
+    unavailable: 'Plus disponible : {{list}}.',
+    goToCart: 'Voir mon panier',
   },
   manage: {
     ordersTitle: 'Commandes en ligne',

@@ -12,7 +12,14 @@ from common.permissions import IsStaffMember
 from . import services
 from .delivery import DESTINATIONS, rules
 from .models import Order
-from .serializers import ChangeStatusSerializer, ManageOrderSerializer, OrderSerializer, PlaceOrderSerializer
+from .serializers import (
+    AddToOrderSerializer,
+    ChangeStatusSerializer,
+    ManageOrderSerializer,
+    OrderSerializer,
+    PlaceOrderSerializer,
+    ReorderSerializer,
+)
 
 ORDER_PREFETCH = ['items__variant__color', 'items__variant__product']
 
@@ -40,6 +47,19 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Crea
     def cancel(self, request, pk=None):
         order = services.cancel_by_customer(self.get_object())
         return Response(OrderSerializer(self.get_queryset().get(pk=order.pk)).data)
+
+    @extend_schema(request=AddToOrderSerializer, responses=OrderSerializer)
+    @action(detail=True, methods=['post'], url_path='items')
+    def add_items(self, request, pk=None):
+        payload = AddToOrderSerializer(data=request.data)
+        payload.is_valid(raise_exception=True)
+        order = services.add_to_order(self.get_object(), **payload.validated_data)
+        return Response(OrderSerializer(self.get_queryset().get(pk=order.pk)).data)
+
+    @extend_schema(request=None, responses=ReorderSerializer)
+    @action(detail=True, methods=['post'])
+    def reorder(self, request, pk=None):
+        return Response(services.reorder(self.get_object()))
 
 
 class ManageOrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):

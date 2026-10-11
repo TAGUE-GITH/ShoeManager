@@ -28,6 +28,8 @@ export const ordersApi = {
   get: (id) => api.get(`/orders/${id}/`).then(data),
   place: (form) => api.post('/orders/', form).then(data),
   cancel: (id) => api.post(`/orders/${id}/cancel/`).then(data),
+  addItem: (id, variant, quantity) => api.post(`/orders/${id}/items/`, { variant, quantity }).then(data),
+  reorder: (id) => api.post(`/orders/${id}/reorder/`).then(data),
 }
 
 export const deliveryApi = {

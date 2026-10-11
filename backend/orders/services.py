@@ -145,3 +145,69 @@ def cancel_by_customer(order):
     if order.status not in CUSTOMER_CANCELLABLE:
         raise ValidationError({'detail': _('Cette commande est déjà en préparation : elle ne peut plus être annulée.')})
     return change_status(order, OrderStatus.ANNULEE)
+
+
+@transaction.atomic
+def add_to_order(order, variant, quantity):
+    """
+    Le client ajoute des paires a sa commande tant qu'elle n'est pas en preparation (le stock n'a pas encore
+    quitte la boutique). Prix actuel du produit, frais de livraison recalcules sur le nouveau contenu.
+    """
+    order = Order.objects.select_for_update().get(pk=order.pk)
+    if order.status not in CUSTOMER_CANCELLABLE:
+        raise ValidationError(
+            {'detail': _('Cette commande est déjà en préparation : passez une nouvelle commande pour ces paires.')}
+        )
+    if not variant.product.is_published:
+        raise ValidationError({'variant': _('Ce produit n’est pas disponible.')})
+    lock_variants([variant.id])
+    check_available([(variant, quantity)])
+
+    price = variant.product.price
+    item = order.items.filter(variant=variant, unit_price=price).first()
+    if item:
+        item.quantity += quantity
+        item.save(update_fields=['quantity'])
+    else:
+        OrderItem.objects.create(
+            order=order,
+            variant=variant,
+            product_name=variant.product.name,
+            size=format_size(variant.size),
+            color=variant.color.name,
+            quantity=quantity,
+            unit_price=price,
+        )
+
+    items = list(order.items.all())
+    order.subtotal = sum(line.unit_price * line.quantity for line in items)
+    if order.delivery_mode == DeliveryMode.LIVRAISON:
+        order.delivery_fee = delivery_fee(order.delivery_zone, order.subtotal, sum(line.quantity for line in items))
+    order.total = order.subtotal + order.delivery_fee
+    order.save(update_fields=['subtotal', 'delivery_fee', 'total', 'updated_at'])
+    return order
+
+
+def reorder(order):
+    """
+    « Commander a nouveau » : remet les memes paires dans le panier, dans la limite du stock disponible.
+    Renvoie le nombre de paires ajoutees et les paires qui ne sont plus disponibles.
+    """
+    cart, _created = Cart.objects.get_or_create(user=order.customer)
+    added, unavailable = 0, []
+    for line in order.items.select_related('variant__product'):
+        variant = line.variant
+        in_cart = cart.items.filter(variant=variant).first()
+        free = Variant.objects.with_available().get(id=variant.id).available - (in_cart.quantity if in_cart else 0)
+        quantity = min(line.quantity, free) if variant.product.is_published else 0
+        if quantity <= 0:
+            unavailable.append(f'{line.product_name} ({line.size})')
+            continue
+        if in_cart:
+            in_cart.quantity += quantity
+            in_cart.save(update_fields=['quantity'])
+        else:
+            cart.items.create(variant=variant, quantity=quantity)
+        added += quantity
+    cart.save(update_fields=['updated_at'])
+    return {'added': added, 'unavailable': unavailable}

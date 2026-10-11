@@ -1,6 +1,8 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from catalog.models import Variant
+
 from .delivery import DESTINATIONS
 from .models import DeliveryMode, Order, OrderItem, OrderStatus, PaymentMethod
 from .services import CUSTOMER_CANCELLABLE, next_statuses
@@ -59,6 +61,7 @@ class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     status_label = serializers.CharField(source='get_status_display', read_only=True)
     can_cancel = serializers.SerializerMethodField()
+    can_add_items = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -80,9 +83,14 @@ class OrderSerializer(serializers.ModelSerializer):
             'created_at',
             'items',
             'can_cancel',
+            'can_add_items',
         ]
 
     def get_can_cancel(self, order) -> bool:
+        return order.status in CUSTOMER_CANCELLABLE
+
+    def get_can_add_items(self, order) -> bool:
+        # Meme limite que l'annulation : tant que la preparation n'a pas commence
         return order.status in CUSTOMER_CANCELLABLE
 
 
@@ -105,3 +113,15 @@ class ManageOrderSerializer(OrderSerializer):
 
 class ChangeStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=OrderStatus.choices)
+
+
+class AddToOrderSerializer(serializers.Serializer):
+    variant = serializers.PrimaryKeyRelatedField(queryset=Variant.objects.select_related('product', 'color'))
+    quantity = serializers.IntegerField(min_value=1, default=1)
+
+
+class ReorderSerializer(serializers.Serializer):
+    """Reponse de « Commander a nouveau »."""
+
+    added = serializers.IntegerField()
+    unavailable = serializers.ListField(child=serializers.CharField())

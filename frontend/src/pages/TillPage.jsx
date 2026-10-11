@@ -1,98 +1,13 @@
-import { FileText, Minus, Plus, Search, Trash2 } from 'lucide-react'
+import { FileText, Minus, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { errorMessage, fieldErrors } from '../api/client'
-import { catalogApi, salesApi } from '../api/resources'
+import { salesApi } from '../api/resources'
+import ProductPicker from '../components/ProductPicker'
 import { Alert, Button, Field, Loader } from '../components/ui'
 import { useFetch } from '../hooks/useFetch'
 import { formatPrice } from '../utils/format'
 import { addToTicket, SALE_PAYMENTS, ticketTotal } from '../utils/shop'
-
-// Choix d'un modele puis de sa pointure et sa couleur (seules les paires disponibles sont proposees)
-function ProductPicker({ onPick }) {
-  const { t } = useTranslation()
-  const [query, setQuery] = useState('')
-  const [search, setSearch] = useState('')
-  const [slug, setSlug] = useState(null)
-  const { data: results, loading } = useFetch(() => catalogApi.products(search ? { search } : {}), `till-${search}`)
-  const { data: product } = useFetch(() => (slug ? catalogApi.product(slug) : Promise.resolve(null)), `till-product-${slug}`)
-
-  return (
-    <section className="rounded-2xl bg-white p-5 ring-1 ring-stone-200">
-      <form
-        role="search"
-        onSubmit={(event) => {
-          event.preventDefault()
-          setSearch(query.trim())
-          setSlug(null)
-        }}
-        className="relative"
-      >
-        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" aria-hidden />
-        <input
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t('till.searchPlaceholder')}
-          aria-label={t('till.search')}
-          className="w-full rounded-xl border border-stone-300 py-2.5 pr-3 pl-9 text-sm outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-100"
-        />
-      </form>
-
-      {loading ? (
-        <Loader />
-      ) : (
-        <ul className="mt-4 grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2">
-          {(results?.results ?? []).map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                onClick={() => setSlug(item.slug)}
-                aria-pressed={slug === item.slug}
-                className={`w-full rounded-xl p-3 text-left ring-1 transition ${
-                  slug === item.slug ? 'bg-brand-50 ring-2 ring-brand-700' : 'ring-stone-200 hover:ring-stone-400'
-                }`}
-              >
-                <span className="block text-xs font-semibold text-brand-700 uppercase">{item.brand}</span>
-                <span className="block font-semibold text-ink">{item.name}</span>
-                <span className="block text-sm text-stone-500">{formatPrice(item.price)}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {product && (
-        <div className="mt-5 border-t border-stone-100 pt-4">
-          <p className="text-sm font-semibold text-ink">{t('till.pickSize', { name: product.name })}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {product.variants.map((variant) => (
-              <button
-                key={variant.id}
-                type="button"
-                disabled={variant.available === 0}
-                onClick={() =>
-                  onPick({
-                    variant: variant.id,
-                    label: `${product.name} · ${t('cart.variant', { size: variant.size, color: variant.color.name })}`,
-                    price: product.price,
-                    available: variant.available,
-                  })
-                }
-                className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ring-1 ring-stone-300 hover:ring-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through"
-                aria-label={t('till.addVariant', { size: variant.size, color: variant.color.name, count: variant.available })}
-              >
-                <span className="size-3 rounded-full ring-1 ring-stone-300" style={{ backgroundColor: variant.color.hex_code }} aria-hidden />
-                {variant.size}
-                <span className="text-xs font-normal text-stone-500">({variant.available})</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
-  )
-}
 
 function SalesOfTheDay({ refreshKey }) {
   const { t, i18n } = useTranslation()
@@ -106,7 +21,9 @@ function SalesOfTheDay({ refreshKey }) {
     <section className="mt-10">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <h2 className="text-xl font-bold text-ink">{t('till.today')}</h2>
-        <p className="text-sm text-stone-600">{t('till.todayTotal', { count: sales.length, total: formatPrice(total) })}</p>
+        <p className="text-sm text-stone-600">
+          {t('till.todayTotal', { count: sales.length, total: formatPrice(total) })}
+        </p>
       </div>
       {sales.length === 0 ? (
         <p className="mt-4 text-sm text-stone-500">{t('till.noSales')}</p>
@@ -117,13 +34,20 @@ function SalesOfTheDay({ refreshKey }) {
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-ink">{sale.reference}</p>
                 <p className="text-sm text-stone-500">
-                  {new Date(sale.created_at).toLocaleTimeString(i18n.language === 'en' ? 'en-US' : 'fr-FR', { hour: '2-digit', minute: '2-digit' })} ·{' '}
-                  {sale.items.map((item) => `${item.quantity} × ${item.product_name} (${item.size})`).join(', ')}
+                  {new Date(sale.created_at).toLocaleTimeString(i18n.language === 'en' ? 'en-US' : 'fr-FR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}{' '}
+                  · {sale.items.map((item) => `${item.quantity} × ${item.product_name} (${item.size})`).join(', ')}
                   {sale.reservation && ` · ${sale.reservation}`}
                 </p>
               </div>
               <p className="font-semibold text-ink">{formatPrice(sale.total)}</p>
-              <Button variant="secondary" onClick={() => salesApi.openReceipt(sale.id)} aria-label={t('till.receiptOf', { reference: sale.reference })}>
+              <Button
+                variant="secondary"
+                onClick={() => salesApi.openReceipt(sale.id)}
+                aria-label={t('till.receiptOf', { reference: sale.reference })}
+              >
                 <FileText className="size-4" aria-hidden />
                 {t('till.receipt')}
               </Button>
@@ -148,7 +72,9 @@ export default function TillPage() {
 
   const setQuantity = (variant, quantity) =>
     setLines((current) =>
-      current.map((line) => (line.variant === variant ? { ...line, quantity: Math.max(1, Math.min(quantity, line.available)) } : line)),
+      current.map((line) =>
+        line.variant === variant ? { ...line, quantity: Math.max(1, Math.min(quantity, line.available)) } : line,
+      ),
     )
 
   const checkout = async () => {
@@ -189,11 +115,23 @@ export default function TillPage() {
                   <p className="font-medium text-ink">{line.label}</p>
                   <div className="mt-1 flex items-center justify-between gap-2">
                     <div className="flex items-center rounded-lg ring-1 ring-stone-300">
-                      <button type="button" className="p-1.5 disabled:opacity-40" disabled={line.quantity <= 1} onClick={() => setQuantity(line.variant, line.quantity - 1)} aria-label={t('till.less')}>
+                      <button
+                        type="button"
+                        className="p-1.5 disabled:opacity-40"
+                        disabled={line.quantity <= 1}
+                        onClick={() => setQuantity(line.variant, line.quantity - 1)}
+                        aria-label={t('till.less')}
+                      >
                         <Minus className="size-3.5" />
                       </button>
                       <span className="w-6 text-center font-semibold">{line.quantity}</span>
-                      <button type="button" className="p-1.5 disabled:opacity-40" disabled={line.quantity >= line.available} onClick={() => setQuantity(line.variant, line.quantity + 1)} aria-label={t('till.more')}>
+                      <button
+                        type="button"
+                        className="p-1.5 disabled:opacity-40"
+                        disabled={line.quantity >= line.available}
+                        onClick={() => setQuantity(line.variant, line.quantity + 1)}
+                        aria-label={t('till.more')}
+                      >
                         <Plus className="size-3.5" />
                       </button>
                     </div>
@@ -227,7 +165,14 @@ export default function TillPage() {
                     payment === method ? 'bg-ink text-white ring-ink' : 'ring-stone-300'
                   }`}
                 >
-                  <input type="radio" name="payment" value={method} checked={payment === method} onChange={() => setPayment(method)} className="sr-only" />
+                  <input
+                    type="radio"
+                    name="payment"
+                    value={method}
+                    checked={payment === method}
+                    onChange={() => setPayment(method)}
+                    className="sr-only"
+                  />
                   {t(`till.payments.${method}`)}
                 </label>
               ))}
@@ -254,8 +199,13 @@ export default function TillPage() {
       </div>
 
       {lastSale && (
-        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl bg-emerald-50 p-4 text-emerald-900 ring-1 ring-emerald-200" role="status">
-          <p className="flex-1 font-semibold">{t('till.done', { reference: lastSale.reference, total: formatPrice(lastSale.total) })}</p>
+        <div
+          className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl bg-emerald-50 p-4 text-emerald-900 ring-1 ring-emerald-200"
+          role="status"
+        >
+          <p className="flex-1 font-semibold">
+            {t('till.done', { reference: lastSale.reference, total: formatPrice(lastSale.total) })}
+          </p>
           <Button variant="secondary" onClick={() => salesApi.openReceipt(lastSale.id)}>
             <FileText className="size-4" aria-hidden />
             {t('till.receipt')}

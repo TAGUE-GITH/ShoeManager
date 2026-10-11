@@ -27,7 +27,7 @@ La boutique **FranckShoese** (Douala) gérait ses ventes sur un cahier et ses r�
 - Catalogue par catégories (Hommes › Baskets, Femmes › Sandales…), filtres par pointure, couleur, marque et prix
 - Panier et commande en ligne : livraison au Cameroun et à l'étranger (Douala 1 000 FCFA, autres villes 10 %, étranger 20 % dès 5 paires, −10 % sur la livraison dès 10 paires) ou retrait gratuit en boutique
 - Réservation d'une paire pour l'essayer en boutique (bloquée 48 h, expiration automatique)
-- Suivi des commandes, points de fidélité
+- Suivi des commandes ; ajout de paires tant que la commande n'est pas en préparation, puis « Commander à nouveau » ; points de fidélité
 
 **Pour la boutique**
 - Produits (ajout, modification, photos, suppression), catégories, déclinaisons (pointure + couleur) et stock, alertes de stock bas
@@ -103,8 +103,8 @@ Comptes de démonstration **en local uniquement** (créés par `seed_demo`, mot 
 ## Tests
 
 ```bash
-cd backend && pytest       # API : 181 tests
-cd frontend && npm test    # interface : 30 tests
+cd backend && pytest       # API : 196 tests
+cd frontend && npm test    # interface : 32 tests
 ```
 
 Les tests sont écrits avant le code (TDD), à partir des critères d'acceptation des user stories. GitHub Actions les exécute à chaque envoi, avec une vraie base PostgreSQL.

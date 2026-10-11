@@ -1,11 +1,14 @@
-import { CheckCircle2, ChevronRight } from 'lucide-react'
+import { CheckCircle2, ChevronRight, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { errorMessage } from '../api/client'
 import { ordersApi } from '../api/resources'
 import { OrderSummary, OrderTimeline, StatusBadge } from '../components/orders'
+import ProductPicker from '../components/ProductPicker'
+import { buttonClasses } from '../components/buttonStyles'
 import { Alert, Button, Loader } from '../components/ui'
+import { useCart } from '../context/CartProvider'
 import { useFetch } from '../hooks/useFetch'
 import { formatPrice } from '../utils/format'
 
@@ -45,6 +48,114 @@ export function MyOrders() {
         </li>
       ))}
     </ul>
+  )
+}
+
+// Tant que la commande n'est pas en preparation : le client y ajoute des paires
+function AddToOrder({ order, onAdded }) {
+  const { t } = useTranslation()
+  const [picked, setPicked] = useState(null)
+  const [quantity, setQuantity] = useState(1)
+  const [busy, setBusy] = useState(false)
+  const [feedback, setFeedback] = useState({ type: '', text: '' })
+
+  const add = async () => {
+    setBusy(true)
+    setFeedback({ type: '', text: '' })
+    try {
+      onAdded(await ordersApi.addItem(order.id, picked.variant, quantity))
+      setFeedback({ type: 'success', text: t('orders.added', { label: picked.label, count: quantity }) })
+      setPicked(null)
+      setQuantity(1)
+    } catch (err) {
+      setFeedback({ type: 'error', text: err.response?.data?.detail ?? errorMessage(err) })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="mt-6 space-y-4">
+      <div>
+        <h2 className="text-lg font-bold text-ink">{t('orders.addTitle')}</h2>
+        <p className="text-sm text-stone-500">{t('orders.addHint')}</p>
+      </div>
+      <Alert type={feedback.type || 'error'}>{feedback.text}</Alert>
+      <ProductPicker onPick={(choice) => setPicked(choice)} />
+      {picked && (
+        <div className="flex flex-wrap items-end gap-3 rounded-2xl bg-white p-5 ring-1 ring-stone-200">
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-ink">{picked.label}</p>
+            <p className="text-sm text-stone-500">{formatPrice(picked.price)}</p>
+          </div>
+          <label className="text-sm text-stone-700">
+            {t('orders.quantity')}
+            <input
+              type="number"
+              min="1"
+              max={picked.available}
+              value={quantity}
+              onChange={(event) =>
+                setQuantity(Math.max(1, Math.min(picked.available, Number(event.target.value) || 1)))
+              }
+              className="ml-2 w-20 rounded-lg border border-stone-300 px-2 py-1.5 text-sm"
+            />
+          </label>
+          <Button loading={busy} onClick={add}>
+            {t('orders.addButton')}
+          </Button>
+        </div>
+      )}
+    </section>
+  )
+}
+
+// Commande en preparation ou terminee : on ne la modifie plus, on peut commander les memes paires
+function Reorder({ order }) {
+  const { t } = useTranslation()
+  const { refresh } = useCart()
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState('')
+
+  const reorder = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      setResult(await ordersApi.reorder(order.id))
+      await refresh()
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="mt-6 rounded-2xl bg-white p-5 ring-1 ring-stone-200">
+      <p className="text-sm text-stone-600">{t('orders.lockedHint')}</p>
+      <Alert>{error}</Alert>
+      {result ? (
+        <div className="mt-3 space-y-3">
+          <Alert type={result.added ? 'success' : 'error'}>
+            {result.added ? t('orders.reordered', { count: result.added }) : t('orders.nothingAvailable')}
+            {result.unavailable.length > 0 && (
+              <span className="block">{t('orders.unavailable', { list: result.unavailable.join(', ') })}</span>
+            )}
+          </Alert>
+          {result.added > 0 && (
+            <Link to="/panier" className={buttonClasses('primary')}>
+              {t('orders.goToCart')}
+            </Link>
+          )}
+        </div>
+      ) : (
+        <Button variant="secondary" className="mt-3" loading={busy} onClick={reorder}>
+          <RotateCcw className="size-4" aria-hidden />
+          {t('orders.reorder')}
+        </Button>
+      )}
+    </section>
   )
 }
 
@@ -135,7 +246,11 @@ export function OrderPage() {
         </div>
       </section>
 
-      <Alert>{actionError}</Alert>
+      {current.can_add_items ? <AddToOrder order={current} onAdded={setOrder} /> : <Reorder order={current} />}
+
+      <div className="mt-6">
+        <Alert>{actionError}</Alert>
+      </div>
       {current.can_cancel && (
         <Button variant="secondary" className="mt-6" loading={cancelling} onClick={cancel}>
           {t('orders.cancel')}
