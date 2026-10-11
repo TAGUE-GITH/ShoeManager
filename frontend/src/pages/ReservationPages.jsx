@@ -21,7 +21,9 @@ function ReservationStatus({ reservation }) {
   // Une reservation echue mais pas encore passee par la tache planifiee est deja affichee « Expiree »
   const status = reservation.status === 'ACTIVE' && !reservation.is_holding ? 'EXPIREE' : reservation.status
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${STATUS_STYLE[status]}`}>
+    <span
+      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${STATUS_STYLE[status]}`}
+    >
       {t(`reservations.status.${status}`)}
     </span>
   )
@@ -43,7 +45,11 @@ function PairLine({ reservation }) {
   const { t } = useTranslation()
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <span className="size-4 shrink-0 rounded-full ring-1 ring-stone-300" style={{ backgroundColor: reservation.color_hex }} aria-hidden />
+      <span
+        className="size-4 shrink-0 rounded-full ring-1 ring-stone-300"
+        style={{ backgroundColor: reservation.color_hex }}
+        aria-hidden
+      />
       <div className="min-w-0">
         <Link to={`/produits/${reservation.product_slug}`} className="font-semibold text-ink hover:text-brand-700">
           {reservation.brand} {reservation.product_name}
@@ -185,7 +191,13 @@ function ManagedReservation({ reservation: initial }) {
           <Button loading={busy === 'honor'} disabled={Boolean(busy)} onClick={honor}>
             {t('reservations.honor')}
           </Button>
-          <Button variant="ghost" className="text-red-700 hover:bg-red-50" loading={busy === 'cancel'} disabled={Boolean(busy)} onClick={cancel}>
+          <Button
+            variant="ghost"
+            className="text-red-700 hover:bg-red-50"
+            loading={busy === 'cancel'}
+            disabled={Boolean(busy)}
+            onClick={cancel}
+          >
             {t('reservations.cancel')}
           </Button>
         </div>
@@ -204,7 +216,7 @@ export function ManageReservationsPage() {
 
   return (
     <>
-      <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label={t('manage.filter')}>
+      <div className="flex flex-wrap gap-2 pb-2" role="tablist" aria-label={t('manage.filter')}>
         {FILTERS.map((value) => (
           <button
             key={value || 'all'}
@@ -213,7 +225,9 @@ export function ManageReservationsPage() {
             aria-selected={status === value}
             onClick={() => setStatus(value)}
             className={`shrink-0 rounded-xl px-3.5 py-2 text-sm font-semibold ring-1 ${
-              status === value ? 'bg-ink text-white ring-ink' : 'bg-white text-stone-700 ring-stone-300 hover:ring-stone-500'
+              status === value
+                ? 'bg-ink text-white ring-ink'
+                : 'bg-white text-stone-700 ring-stone-300 hover:ring-stone-500'
             }`}
           >
             {value ? t(`reservations.status.${value}`) : t('manage.all')}
@@ -222,7 +236,9 @@ export function ManageReservationsPage() {
       </div>
       {loading && <Loader />}
       <Alert>{error}</Alert>
-      {data && data.results.length === 0 && <p className="mt-8 text-center text-stone-500">{t('reservations.noneToHandle')}</p>}
+      {data && data.results.length === 0 && (
+        <p className="mt-8 text-center text-stone-500">{t('reservations.noneToHandle')}</p>
+      )}
       {data && (
         <ul className="mt-6 space-y-4">
           {data.results.map((reservation) => (

@@ -348,6 +348,9 @@ export default {
     pairsCount_one: '{{count}} pair',
     pairsCount_other: '{{count}} pairs',
     noSales: 'No sales yet for this period.',
+    inProgress_one: '{{count}} order in progress: {{total}}',
+    inProgress_other: '{{count}} orders in progress: {{total}}',
+    inProgressHint: 'Counted in online revenue once handed to the customer.',
   },
   stock: {
     intro:

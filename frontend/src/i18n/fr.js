@@ -349,6 +349,9 @@ export default {
     pairsCount_one: '{{count}} paire',
     pairsCount_other: '{{count}} paires',
     noSales: 'Pas encore de ventes sur cette période.',
+    inProgress_one: '{{count}} commande en cours : {{total}}',
+    inProgress_other: '{{count}} commandes en cours : {{total}}',
+    inProgressHint: 'Comptées dans le chiffre d’affaires en ligne quand elles sont remises au client.',
   },
   stock: {
     intro:

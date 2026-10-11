@@ -45,7 +45,10 @@ function SearchBox({ onSearch }) {
   }
   return (
     <form onSubmit={submit} role="search" className="relative">
-      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" aria-hidden />
+      <Search
+        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400"
+        aria-hidden
+      />
       <input
         type="search"
         value={query}
@@ -66,14 +69,17 @@ function Header() {
   const [open, setOpen] = useState(false)
   const { data: categories } = useFetch(catalogApi.categories, 'categories')
 
-  const links = (categories ?? []).map((category) => ({ to: `/catalogue?category=${category.slug}`, label: category.name }))
+  const links = (categories ?? []).map((category) => ({
+    to: `/catalogue?category=${category.slug}`,
+    label: category.name,
+  }))
   const navClass = 'text-sm font-semibold whitespace-nowrap text-stone-700 hover:text-brand-700'
 
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6 sm:px-6">
         <Logo />
-        <nav className="hidden items-center gap-6 md:flex" aria-label={t('nav.main')}>
+        <nav className="hidden items-center gap-6 lg:flex" aria-label={t('nav.main')}>
           <NavLink to="/catalogue" end className={navClass}>
             {t('nav.allShoes')}
           </NavLink>
@@ -86,14 +92,14 @@ function Header() {
         <div className="ml-auto hidden w-56 xl:block 2xl:w-64">
           <SearchBox />
         </div>
-        <div className="ml-auto flex items-center gap-1 sm:gap-2 xl:ml-0">
+        <div className="ml-auto flex items-center gap-0.5 sm:gap-2 xl:ml-0">
           <div className="hidden sm:block">
             <LanguageSwitcher />
           </div>
           {isStaff && (
             <Link
               to="/gestion"
-              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold whitespace-nowrap text-stone-700 hover:bg-stone-100"
+              className="flex items-center gap-2 rounded-xl p-2 text-sm font-semibold whitespace-nowrap text-stone-700 hover:bg-stone-100 sm:px-3"
               title={t('nav.shopSpace')}
             >
               <ClipboardList className="size-5" aria-hidden />
@@ -115,7 +121,7 @@ function Header() {
           </Link>
           <Link
             to={user ? '/compte' : '/connexion'}
-            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100"
+            className="flex items-center gap-2 rounded-xl p-2 text-sm font-semibold text-stone-700 hover:bg-stone-100 sm:px-3"
           >
             <User className="size-5" aria-hidden />
             <span className="hidden sm:inline">{user ? user.first_name : t('nav.login')}</span>
@@ -126,14 +132,14 @@ function Header() {
             onClick={() => setOpen(!open)}
             aria-expanded={open}
             aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
-            className="rounded-xl p-2 text-stone-700 hover:bg-stone-100 md:hidden"
+            className="rounded-xl p-2 text-stone-700 hover:bg-stone-100 lg:hidden"
           >
             {open ? <X className="size-6" /> : <Menu className="size-6" />}
           </button>
         </div>
       </div>
       {open && (
-        <div className="space-y-4 border-t border-stone-200 bg-white px-4 py-4 md:hidden">
+        <div className="space-y-4 border-t border-stone-200 bg-white px-4 py-4 lg:hidden">
           <SearchBox onSearch={() => setOpen(false)} />
           <nav className="flex flex-col gap-1" aria-label={t('nav.main')}>
             {[{ to: '/catalogue', label: t('nav.allShoes') }, ...links].map((link) => (

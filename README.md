@@ -103,7 +103,7 @@ Comptes de démonstration **en local uniquement** (créés par `seed_demo`, mot 
 ## Tests
 
 ```bash
-cd backend && pytest       # API : 196 tests
+cd backend && pytest       # API : 197 tests
 cd frontend && npm test    # interface : 32 tests
 ```
 

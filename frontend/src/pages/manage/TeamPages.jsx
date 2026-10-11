@@ -134,7 +134,7 @@ function CustomerActions({ customer, onChange, onError }) {
 
   const name = `${customer.first_name} ${customer.last_name}`
   return (
-    <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+    <div className="flex flex-wrap items-center gap-2 md:flex-nowrap md:justify-end md:whitespace-nowrap">
       <select
         value={customer.role}
         disabled={busy}
@@ -222,7 +222,47 @@ export function CustomersPage() {
         <Alert>{error || actionError}</Alert>
       </div>
       {data && (
-        <div className="relative mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-stone-200">
+        <ul className="mt-4 space-y-3 md:hidden">
+          {data.results.map((customer) => (
+            <li key={customer.id} className="rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+              <p className="font-semibold text-ink">
+                {customer.first_name} {customer.last_name}{' '}
+                {!customer.is_active && (
+                  <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800">
+                    {t('customers.blocked')}
+                  </span>
+                )}
+              </p>
+              <p className="text-xs break-all text-stone-500">{customer.email}</p>
+              {customer.phone && <p className="text-sm text-stone-600">{customer.phone}</p>}
+              <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs text-stone-500">
+                {[
+                  [t('customers.orders'), customer.orders_count],
+                  [t('customers.purchases'), customer.purchases_count],
+                  [t('customers.points'), customer.loyalty_points],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg bg-stone-50 py-2">
+                    <dd className="text-base font-bold text-ink">{value}</dd>
+                    <dt>{label}</dt>
+                  </div>
+                ))}
+              </dl>
+              {isManager && (
+                <div className="mt-3 border-t border-stone-100 pt-3">
+                  <CustomerActions
+                    customer={customer}
+                    onChange={() => setVersion((v) => v + 1)}
+                    onError={setActionError}
+                  />
+                </div>
+              )}
+            </li>
+          ))}
+          {data.results.length === 0 && <li className="p-6 text-center text-stone-500">{t('customers.none')}</li>}
+        </ul>
+      )}
+      {data && (
+        <div className="relative mt-4 hidden overflow-x-auto rounded-2xl bg-white ring-1 ring-stone-200 md:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-stone-50 text-xs font-semibold text-stone-500 uppercase">
               <tr>

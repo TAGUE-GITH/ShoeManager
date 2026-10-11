@@ -81,6 +81,27 @@ class TestDashboard:
         assert data['revenue']['today']['online'] == '0'
         assert data['to_handle']['orders'] == 1
 
+    def test_orders_in_progress_are_shown_apart(self, client_for, shop):
+        """Commandes ni remises ni annulees : montant a venir, pas encore dans le chiffre d'affaires."""
+        shopper = client_for(Role.CLIENT)
+        staff = client_for(Role.GERANT)
+        for _ in range(3):
+            shopper.post('/api/cart/items/', {'variant': shop['heels38'].id, 'quantity': 1}, format='json')
+            shopper.post(
+                '/api/orders/',
+                {'delivery_mode': 'RETRAIT', 'payment_method': 'EN_BOUTIQUE', 'phone': '690'},
+                format='json',
+            )
+        first, second, third = Order.objects.order_by('id')
+        staff.patch(f'/api/manage/orders/{second.id}/status/', {'status': 'CONFIRMEE'}, format='json')
+        staff.patch(f'/api/manage/orders/{third.id}/status/', {'status': 'ANNULEE'}, format='json')
+        delivered_order(shopper, staff, shop['sneakers42'])
+
+        data = staff.get(DASHBOARD_URL).data
+
+        assert data['in_progress'] == {'count': 2, 'total': '40000'}
+        assert data['revenue']['today']['online'] == '50000'
+
     def test_best_sellers_and_sizes_over_30_days(self, client_for, shop):
         seller = client_for(Role.VENDEUR)
         sell(seller, [(shop['sneakers42'], 3), (shop['sneakers43'], 1)])

@@ -92,9 +92,10 @@ describe('StockPage', () => {
     manageApi.updateVariant.mockResolvedValue({})
     render(<StockPage />, { wrapper: MemoryRouter })
 
-    expect(await screen.findByText('1 restante')).toBeInTheDocument()
-    await userEvent.type(screen.getByLabelText('Paires reçues pour Stan Smith, pointure 42'), '5')
-    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    // Carte (telephone) et tableau (ordinateur) sont tous deux dans la page : on utilise la premiere
+    expect((await screen.findAllByText('1 restante')).length).toBeGreaterThan(0)
+    await userEvent.type(screen.getAllByLabelText('Paires reçues pour Stan Smith, pointure 42')[0], '5')
+    await userEvent.click(screen.getAllByRole('button', { name: 'Ajouter' })[0])
 
     expect(manageApi.updateVariant).toHaveBeenCalledWith(7, { stock: 7 })
     expect(manageApi.stockAlerts).toHaveBeenCalledTimes(2)
@@ -126,7 +127,7 @@ describe('CustomersPage', () => {
     manageApi.updateCustomer.mockResolvedValue({ ...awa, is_active: false })
     render(<CustomersPage />, { wrapper: MemoryRouter })
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Bloquer' }))
+    await userEvent.click((await screen.findAllByRole('button', { name: 'Bloquer' }))[0])
 
     expect(manageApi.updateCustomer).toHaveBeenCalledWith(4, { is_active: false })
     expect(manageApi.customers).toHaveBeenCalledTimes(2)
@@ -136,7 +137,7 @@ describe('CustomersPage', () => {
     useAuth.mockReturnValue({ user: { role: 'VENDEUR' } })
     render(<CustomersPage />, { wrapper: MemoryRouter })
 
-    expect(await screen.findByText('awa@test.cm', { exact: false })).toBeInTheDocument()
+    expect((await screen.findAllByText('awa@test.cm', { exact: false })).length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: 'Bloquer' })).not.toBeInTheDocument()
   })
 })

@@ -112,7 +112,7 @@ export default function ManageOrdersPage() {
           className="w-full rounded-xl border border-stone-300 bg-white py-2.5 pr-3 pl-9 text-sm"
         />
       </form>
-      <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label={t('manage.filter')}>
+      <div className="flex flex-wrap gap-2 pb-2" role="tablist" aria-label={t('manage.filter')}>
         {FILTERS.map((value) => (
           <button
             key={value || 'all'}

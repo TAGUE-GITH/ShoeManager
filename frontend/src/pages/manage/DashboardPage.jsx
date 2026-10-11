@@ -1,4 +1,4 @@
-import { AlertTriangle, BarChart3, CalendarClock, ClipboardList, Table2 } from 'lucide-react'
+import { AlertTriangle, BarChart3, CalendarClock, ClipboardList, Table2, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -192,6 +192,19 @@ export default function DashboardPage() {
         <RevenueTile label={t('dashboard.week')} values={data.revenue.week} />
         <RevenueTile label={t('dashboard.month')} values={data.revenue.month} />
       </div>
+
+      {data.in_progress.count > 0 && (
+        <Link
+          to="/gestion/commandes"
+          className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-sky-50 p-4 text-sm text-sky-900 ring-1 ring-sky-200 hover:shadow-md"
+        >
+          <Truck className="size-5 shrink-0" aria-hidden />
+          <span className="font-semibold">
+            {t('dashboard.inProgress', { count: data.in_progress.count, total: formatPrice(data.in_progress.total) })}
+          </span>
+          <span className="text-sky-800">{t('dashboard.inProgressHint')}</span>
+        </Link>
+      )}
 
       <ToHandle data={data.to_handle} />
 

@@ -8,7 +8,7 @@ comptees au jour de la remise). Les commandes annulees ou pas encore remises ne 
 from collections import defaultdict
 from datetime import datetime, time, timedelta
 
-from django.db.models import F, Sum
+from django.db.models import Count, F, Sum
 from django.utils import timezone
 
 from catalog.models import Variant, format_size
@@ -104,6 +104,12 @@ def stock_alert_rows():
     ]
 
 
+def in_progress():
+    orders = Order.objects.exclude(status__in=[OrderStatus.LIVREE, OrderStatus.ANNULEE])
+    totals = orders.aggregate(count=Count('id'), total=Sum('total'))
+    return {'count': totals['count'], 'total': str(totals['total'] or 0)}
+
+
 def dashboard():
     best_sellers, sizes = best_sellers_and_sizes()
     return {
@@ -111,6 +117,8 @@ def dashboard():
         'daily': daily_revenue(),
         'best_sellers': best_sellers,
         'sizes': sizes,
+        # Commandes en cours (ni remises ni annulees) : comptees dans le chiffre d'affaires a la remise
+        'in_progress': in_progress(),
         'to_handle': {
             'orders': Order.objects.filter(status__in=PENDING_STATUSES).count(),
             'reservations': Reservation.objects.holding().count(),

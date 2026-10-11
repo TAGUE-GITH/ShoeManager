@@ -8,7 +8,7 @@ import { Alert, Button, Loader } from '../../components/ui'
 import { useFetch } from '../../hooks/useFetch'
 
 // Reapprovisionnement d'une declinaison : on ajoute les paires recues au stock physique
-function Restock({ row, onDone }) {
+function Restock({ row, onDone, idPrefix = '' }) {
   const { t } = useTranslation()
   const [quantity, setQuantity] = useState('')
   const [busy, setBusy] = useState(false)
@@ -30,12 +30,12 @@ function Restock({ row, onDone }) {
   }
 
   return (
-    <form onSubmit={submit} className="flex items-center justify-end gap-2">
-      <label className="sr-only" htmlFor={`restock-${row.variant}`}>
+    <form onSubmit={submit} className="flex flex-wrap items-center gap-2 md:justify-end">
+      <label className="sr-only" htmlFor={`${idPrefix}restock-${row.variant}`}>
         {t('stock.received', { product: row.product, size: row.size })}
       </label>
       <input
-        id={`restock-${row.variant}`}
+        id={`${idPrefix}restock-${row.variant}`}
         type="number"
         min="1"
         inputMode="numeric"
@@ -70,67 +70,106 @@ export default function StockPage() {
           {t('stock.allGood')}
         </p>
       ) : (
-        <div className="relative mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-stone-200">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-stone-50 text-xs font-semibold text-stone-500 uppercase">
-              <tr>
-                <th scope="col" className="px-4 py-3">
-                  {t('stock.product')}
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  {t('stock.variant')}
-                </th>
-                <th scope="col" className="px-4 py-3 text-right">
-                  {t('stock.inShop')}
-                </th>
-                <th scope="col" className="px-4 py-3 text-right">
-                  {t('stock.available')}
-                </th>
-                <th scope="col" className="px-4 py-3 text-right">
-                  {t('stock.restock')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {(data ?? []).map((row) => (
-                <tr key={row.variant}>
-                  <td className="px-4 py-3">
+        <>
+          <ul className="mt-4 space-y-3 md:hidden">
+            {(data ?? []).map((row) => (
+              <li key={row.variant} className="rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
                     <Link
                       to={`/gestion/catalogue/${row.product_id}`}
                       className="font-semibold text-ink hover:text-brand-700"
                     >
                       {row.product}
                     </Link>
-                    <p className="text-xs text-stone-500">{row.sku}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-2">
+                    <p className="mt-0.5 flex items-center gap-2 text-sm text-stone-600">
                       <span
                         className="size-3 rounded-full ring-1 ring-stone-300"
                         style={{ backgroundColor: row.color_hex }}
                         aria-hidden
                       />
                       {t('cart.variant', { size: row.size, color: row.color })}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">{row.stock}</td>
-                  <td className="px-4 py-3 text-right">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        row.available === 0 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
-                      {row.available === 0 ? t('stock.soldOut') : t('stock.left', { count: row.available })}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Restock row={row} onDone={() => setVersion((v) => v + 1)} />
-                  </td>
+                    </p>
+                    <p className="text-xs text-stone-500">
+                      {row.sku} · {t('stock.inShop')} : {row.stock}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      row.available === 0 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {row.available === 0 ? t('stock.soldOut') : t('stock.left', { count: row.available })}
+                  </span>
+                </div>
+                <div className="mt-3 border-t border-stone-100 pt-3">
+                  <Restock row={row} onDone={() => setVersion((v) => v + 1)} idPrefix="m-" />
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="relative mt-4 hidden overflow-x-auto rounded-2xl bg-white ring-1 ring-stone-200 md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-stone-50 text-xs font-semibold text-stone-500 uppercase">
+                <tr>
+                  <th scope="col" className="px-4 py-3">
+                    {t('stock.product')}
+                  </th>
+                  <th scope="col" className="px-4 py-3">
+                    {t('stock.variant')}
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-right">
+                    {t('stock.inShop')}
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-right">
+                    {t('stock.available')}
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-right">
+                    {t('stock.restock')}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {(data ?? []).map((row) => (
+                  <tr key={row.variant}>
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/gestion/catalogue/${row.product_id}`}
+                        className="font-semibold text-ink hover:text-brand-700"
+                      >
+                        {row.product}
+                      </Link>
+                      <p className="text-xs text-stone-500">{row.sku}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className="size-3 rounded-full ring-1 ring-stone-300"
+                          style={{ backgroundColor: row.color_hex }}
+                          aria-hidden
+                        />
+                        {t('cart.variant', { size: row.size, color: row.color })}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">{row.stock}</td>
+                    <td className="px-4 py-3 text-right">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          row.available === 0 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {row.available === 0 ? t('stock.soldOut') : t('stock.left', { count: row.available })}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Restock row={row} onDone={() => setVersion((v) => v + 1)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </>
   )
