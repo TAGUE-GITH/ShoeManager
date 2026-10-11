@@ -1,0 +1,9 @@
+line-length = 120
+target-version = "py313"
+extend-exclude = ["**/migrations/**", ".venv"]
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "DJ"]
+
+[format]
+quote-style = "single"

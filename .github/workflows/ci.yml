@@ -1,0 +1,56 @@
+# Integration continue : lint et tests a chaque push et sur chaque pull request
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (Django)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    # Les tests tournent sur PostgreSQL, comme en production
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: shoemanager
+          POSTGRES_USER: shoemanager
+          POSTGRES_PASSWORD: shoemanager
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shoemanager"
+          --health-interval 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://shoemanager:shoemanager@localhost:5432/shoemanager
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Installer les dependances
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (Ruff)
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Migrations a jour
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Tests (pytest)
+        run: pytest

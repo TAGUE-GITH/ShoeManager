@@ -1,0 +1,39 @@
+"""Outils communs aux tests : client de l'API et creation rapide d'utilisateurs connectes."""
+
+import pytest
+from rest_framework.test import APIClient
+
+from accounts.models import Role, User
+
+PASSWORD = 'motdepasse-solide-2026'
+
+
+@pytest.fixture
+def api():
+    return APIClient()
+
+
+@pytest.fixture
+def make_user(db):
+    counter = {'n': 0}
+
+    def factory(role=Role.CLIENT, **fields):
+        counter['n'] += 1
+        fields.setdefault('email', f'utilisateur{counter["n"]}@test.cm')
+        fields.setdefault('first_name', 'Test')
+        fields.setdefault('last_name', f'Utilisateur {counter["n"]}')
+        return User.objects.create_user(password=PASSWORD, role=role, **fields)
+
+    return factory
+
+
+@pytest.fixture
+def client_for(make_user):
+    """Client de l'API deja authentifie avec un utilisateur du role demande."""
+
+    def factory(role=Role.CLIENT):
+        client = APIClient()
+        client.force_authenticate(user=make_user(role=role))
+        return client
+
+    return factory

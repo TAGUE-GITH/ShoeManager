@@ -1,0 +1,33 @@
+# Environnement complet de developpement : docker compose up
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: shoemanager
+      POSTGRES_USER: shoemanager
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shoemanager}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U shoemanager -d shoemanager']
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgres://shoemanager:${POSTGRES_PASSWORD:-shoemanager}@db:5432/shoemanager
+      DJANGO_DEBUG: 'true'
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,backend
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+    ports:
+      - '8000:8000'
+    volumes:
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  media:
