@@ -10,7 +10,7 @@ Projet full-stack réalisé en **équipe de 3**, en méthode **Agile (Scrum + Ka
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
 
-> **État du projet :** Sprint 2 terminé (panier et commande en ligne). Prochain sprint : réservations et caisse.
+> **État du projet :** Sprint 3 terminé (réservations et caisse). Prochain sprint : tableau de bord, finitions et mise en ligne.
 
 ![CI](https://github.com/TAGUE-GITH/ShoeManager/actions/workflows/ci.yml/badge.svg)
 
@@ -60,7 +60,7 @@ La boutique **FranckShoese** (Douala) gérait ses ventes sur un cahier et ses r�
 | 0 | Analyse, conception, environnement | ✅ |
 | 1 | Comptes (inscription, connexion JWT) et catalogue (rayons, filtres, fiche produit) | ✅ |
 | 2 | Panier, commande en ligne (livraison ou retrait), suivi, traitement par la boutique, emails | ✅ |
-| 3 | Réservations et caisse | À venir |
+| 3 | Réservation 48 h avec expiration automatique, encaissement en boutique, caisse, reçu PDF | ✅ |
 | 4 | Tableau de bord, finitions et mise en ligne | À venir |
 
 ## Lancer le projet en local
@@ -91,13 +91,15 @@ npm install
 npm run dev
 ```
 
+Les réservations non honorées expirent automatiquement : en production, une tâche planifiée lance `python manage.py expire_reservations` toutes les 15 minutes (une réservation échue ne bloque déjà plus la paire avant ce passage).
+
 Comptes de démonstration créés par `seed_demo` (mot de passe `demo-franckshoese`) : `gerant@franckshoese.example`, `vendeur@franckshoese.example`, `client@franckshoese.example`.
 
 ## Tests
 
 ```bash
-cd backend && pytest       # API : 86 tests
-cd frontend && npm test    # interface : 16 tests
+cd backend && pytest       # API : 111 tests
+cd frontend && npm test    # interface : 20 tests
 ```
 
 Les tests sont écrits avant le code (TDD), à partir des critères d'acceptation des user stories. GitHub Actions les exécute à chaque envoi, avec une vraie base PostgreSQL.

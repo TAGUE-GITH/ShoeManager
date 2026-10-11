@@ -6,6 +6,7 @@ import { LogoMark } from '../components/Logo'
 import { Alert, Button, Field } from '../components/ui'
 import { useAuth } from '../context/AuthProvider'
 import { MyOrders } from './OrderPages'
+import { MyReservations } from './ReservationPages'
 
 function AuthCard({ title, subtitle, children }) {
   return (
@@ -166,6 +167,12 @@ export function AccountPage() {
         <h2 className="text-xl font-bold text-ink">{t('orders.mine')}</h2>
         <div className="mt-4">
           <MyOrders />
+        </div>
+      </section>
+      <section className="mt-10">
+        <h2 className="text-xl font-bold text-ink">{t('reservations.mine')}</h2>
+        <div className="mt-4">
+          <MyReservations />
         </div>
       </section>
       <Button variant="secondary" className="mt-8" onClick={logout}>

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { errorMessage, fieldErrors } from '../api/client'
-import { catalogApi } from '../api/resources'
+import { catalogApi, reservationsApi } from '../api/resources'
 import ShoeIllustration from '../components/ShoeIllustration'
 import { Alert, Button, Loader } from '../components/ui'
 import { useAuth } from '../context/AuthProvider'
@@ -20,7 +20,7 @@ function colorsOf(product) {
 
 export default function ProductPage() {
   const { slug } = useParams()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { data: product, error, loading } = useFetch(() => catalogApi.product(slug), slug)
   const [colorId, setColorId] = useState(null)
   const [variantId, setVariantId] = useState(null)
@@ -29,6 +29,7 @@ export default function ProductPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [adding, setAdding] = useState(false)
+  const [reserving, setReserving] = useState(false)
   const [feedback, setFeedback] = useState({ type: '', text: '' })
 
   if (loading) return <Loader />
@@ -49,6 +50,31 @@ export default function ProductPage() {
   const selected = variants.find((variant) => variant.id === variantId)
 
   // US-09 : il faut etre connecte pour avoir un panier ; on revient ensuite sur ce produit
+  // US-14 : reservation de la paire choisie pour l'essayer en boutique (48 h)
+  const reserve = async () => {
+    if (!user) {
+      navigate('/connexion', { state: { from: location.pathname } })
+      return
+    }
+    setReserving(true)
+    setFeedback({ type: '', text: '' })
+    try {
+      const reservation = await reservationsApi.create(selected.id)
+      const deadline = new Date(reservation.expires_at).toLocaleString(i18n.language === 'en' ? 'en-US' : 'fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+      setFeedback({ type: 'success', text: t('product.reserved', { size: selected.size, deadline }), link: 'reservation' })
+    } catch (err) {
+      setFeedback({ type: 'error', text: errorMessage(err) })
+    } finally {
+      setReserving(false)
+    }
+  }
+
   const addToCart = async () => {
     if (!user) {
       navigate('/connexion', { state: { from: location.pathname } })
@@ -160,7 +186,7 @@ export default function ProductPage() {
               <ShoppingBag className="size-4" aria-hidden />
               {t('product.addToCart')}
             </Button>
-            <Button variant="secondary" disabled title={t('product.soon')}>
+            <Button variant="secondary" onClick={reserve} loading={reserving} disabled={!selected}>
               <CalendarClock className="size-4" aria-hidden />
               {t('product.reserve')}
             </Button>
@@ -173,15 +199,15 @@ export default function ProductPage() {
               {feedback.type === 'success' && (
                 <>
                   {' '}
-                  <Link to="/panier" className="font-semibold underline">
-                    {t('product.seeCart')}
+                  <Link to={feedback.link === 'reservation' ? '/compte' : '/panier'} className="font-semibold underline">
+                    {feedback.link === 'reservation' ? t('product.seeReservations') : t('product.seeCart')}
                   </Link>
                 </>
               )}
             </Alert>
           </div>
           )}
-          <p className="mt-3 text-xs text-stone-500">{t('product.reserveSoon')}</p>
+          <p className="mt-3 text-xs text-stone-500">{t('product.reserveInfo')}</p>
         </div>
       </div>
     </div>

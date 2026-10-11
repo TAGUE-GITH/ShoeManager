@@ -1,5 +1,6 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
+import ManageLayout from './components/ManageLayout'
 import { RequireAuth } from './components/orders'
 import { AccountPage, LoginPage, NotFoundPage, RegisterPage } from './pages/AuthPages'
 import CartPage from './pages/CartPage'
@@ -9,6 +10,8 @@ import HomePage from './pages/HomePage'
 import ManageOrdersPage from './pages/ManageOrdersPage'
 import { OrderPage } from './pages/OrderPages'
 import ProductPage from './pages/ProductPage'
+import { ManageReservationsPage } from './pages/ReservationPages'
+import TillPage from './pages/TillPage'
 
 const authed = (page) => <RequireAuth>{page}</RequireAuth>
 const staff = (page) => <RequireAuth staff>{page}</RequireAuth>
@@ -26,7 +29,12 @@ export default function App() {
         <Route path="panier" element={authed(<CartPage />)} />
         <Route path="commande" element={authed(<CheckoutPage />)} />
         <Route path="compte/commandes/:id" element={authed(<OrderPage />)} />
-        <Route path="gestion/commandes" element={staff(<ManageOrdersPage />)} />
+        <Route path="gestion" element={staff(<ManageLayout />)}>
+          <Route index element={<Navigate to="commandes" replace />} />
+          <Route path="commandes" element={<ManageOrdersPage />} />
+          <Route path="reservations" element={<ManageReservationsPage />} />
+          <Route path="caisse" element={<TillPage />} />
+        </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

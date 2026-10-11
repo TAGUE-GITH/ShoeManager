@@ -77,9 +77,9 @@ export default function ManageOrdersPage() {
   const { data, loading, error } = useFetch(() => manageOrdersApi.list(status ? { status } : {}), status)
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-extrabold tracking-tight text-ink">{t('manage.ordersTitle')}</h1>
-      <div className="mt-6 flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label={t('manage.filter')}>
+    <>
+      <h1 className="sr-only">{t('manage.ordersTitle')}</h1>
+      <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label={t('manage.filter')}>
         {FILTERS.map((value) => (
           <button
             key={value || 'all'}
@@ -105,6 +105,6 @@ export default function ManageOrdersPage() {
           ))}
         </ul>
       )}
-    </div>
+    </>
   )
 }

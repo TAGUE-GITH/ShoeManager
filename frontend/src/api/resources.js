@@ -34,3 +34,27 @@ export const manageOrdersApi = {
   list: (params) => api.get('/manage/orders/', { params }).then(data),
   setStatus: (id, status) => api.patch(`/manage/orders/${id}/status/`, { status }).then(data),
 }
+
+export const reservationsApi = {
+  list: () => api.get('/reservations/').then(data),
+  create: (variant) => api.post('/reservations/', { variant }).then(data),
+  cancel: (id) => api.post(`/reservations/${id}/cancel/`).then(data),
+}
+
+export const manageReservationsApi = {
+  list: (params) => api.get('/manage/reservations/', { params }).then(data),
+  honor: (id, payment_method) => api.post(`/manage/reservations/${id}/honor/`, { payment_method }).then(data),
+  cancel: (id) => api.post(`/manage/reservations/${id}/cancel/`).then(data),
+}
+
+export const salesApi = {
+  list: () => api.get('/manage/sales/').then(data),
+  create: (sale) => api.post('/manage/sales/', sale).then(data),
+  // Le recu est protege par le jeton : on le telecharge puis on l'ouvre dans un nouvel onglet
+  openReceipt: async (id) => {
+    const response = await api.get(`/manage/sales/${id}/receipt/`, { responseType: 'blob' })
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  },
+}

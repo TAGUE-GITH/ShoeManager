@@ -67,7 +67,7 @@ function Header() {
   const { data: categories } = useFetch(catalogApi.categories, 'categories')
 
   const links = (categories ?? []).map((category) => ({ to: `/catalogue?category=${category.slug}`, label: category.name }))
-  const navClass = 'text-sm font-semibold text-stone-700 hover:text-brand-700'
+  const navClass = 'text-sm font-semibold whitespace-nowrap text-stone-700 hover:text-brand-700'
 
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/90 backdrop-blur">
@@ -83,21 +83,22 @@ function Header() {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto hidden w-64 lg:block">
+        <div className="ml-auto hidden w-56 xl:block 2xl:w-64">
           <SearchBox />
         </div>
-        <div className="ml-auto flex items-center gap-2 lg:ml-0">
+        <div className="ml-auto flex items-center gap-2 xl:ml-0">
           <div className="hidden sm:block">
             <LanguageSwitcher />
           </div>
           {isStaff && (
             <Link
               to="/gestion/commandes"
-              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100"
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold whitespace-nowrap text-stone-700 hover:bg-stone-100"
+              title={t('nav.shopSpace')}
             >
               <ClipboardList className="size-5" aria-hidden />
-              <span className="hidden xl:inline">{t('nav.shopSpace')}</span>
-              <span className="sr-only xl:hidden">{t('nav.shopSpace')}</span>
+              <span className="hidden 2xl:inline">{t('nav.shopSpace')}</span>
+              <span className="sr-only 2xl:hidden">{t('nav.shopSpace')}</span>
             </Link>
           )}
           <Link
