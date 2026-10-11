@@ -18,6 +18,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         email = os.environ.get('MANAGER_EMAIL', '').strip()
         if not email:
+            self.stdout.write('Gérant : variable MANAGER_EMAIL absente, aucun compte modifié.')
             return
         updated = User.objects.filter(email__iexact=email).update(
             role=Role.GERANT, is_staff=True, is_superuser=True, is_active=True

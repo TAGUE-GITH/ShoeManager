@@ -1,5 +1,7 @@
 """Premier gerant de la boutique : compte designe par la variable MANAGER_EMAIL au demarrage du serveur."""
 
+import io
+
 import pytest
 from django.core.management import call_command
 
@@ -18,14 +20,16 @@ class TestPromoteManager:
         assert user.role == Role.GERANT
         assert user.is_staff and user.is_superuser
 
-    def test_nothing_happens_without_the_variable(self, make_user, monkeypatch):
+    def test_nothing_happens_without_the_variable_but_the_logs_say_so(self, make_user, monkeypatch):
         user = make_user(role=Role.CLIENT)
         monkeypatch.delenv('MANAGER_EMAIL', raising=False)
+        out = io.StringIO()
 
-        call_command('promote_manager', verbosity=0)
+        call_command('promote_manager', stdout=out)
 
         user.refresh_from_db()
         assert user.role == Role.CLIENT
+        assert 'MANAGER_EMAIL' in out.getvalue()
 
     def test_unknown_email_does_not_stop_the_server(self, monkeypatch):
         monkeypatch.setenv('MANAGER_EMAIL', 'personne@test.cm')
