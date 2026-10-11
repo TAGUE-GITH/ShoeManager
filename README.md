@@ -1,0 +1,52 @@
+<h1 align="center">ShoeManager</h1>
+
+**Boutique en ligne et outil de gestion pour un magasin de chaussures** : catalogue par catégories, commande en ligne avec livraison ou retrait, réservation de paires pour essayage, caisse en boutique, gestion du stock par pointure et couleur, et tableau de bord.
+
+Projet full-stack réalisé en **équipe de 3**, en méthode **Agile (Scrum + Kanban)** et en **TDD**.
+
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-REST%20Framework-092E20?logo=django&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
+
+> **État du projet :** Sprint 0 terminé (analyse et conception). Développement en cours.
+
+## Le besoin
+
+La boutique **FranckShoese** (Douala) gérait ses ventes sur un cahier et ses réservations par WhatsApp : paires vendues deux fois, stock inexact, aucune vente possible en dehors des heures d'ouverture. ShoeManager **centralise les données**, permet de **vendre et réserver en ligne** et **automatise** la gestion du stock.
+
+## Fonctionnalités prévues
+
+**Pour les clients**
+- Catalogue par catégories (Hommes › Baskets, Femmes › Sandales…), filtres par pointure, couleur, marque et prix
+- Panier et commande en ligne : livraison ou retrait en boutique
+- Réservation d'une paire pour l'essayer en boutique (bloquée 48 h, expiration automatique)
+- Suivi des commandes, points de fidélité
+
+**Pour la boutique**
+- Produits, déclinaisons (pointure + couleur) et stock, alertes de stock bas
+- Traitement des commandes et des réservations
+- Caisse en boutique avec reçu PDF
+- Tableau de bord : chiffre d'affaires, meilleures ventes, pointures les plus demandées
+
+## Conception (Sprint 0)
+
+| Document | Contenu |
+|---|---|
+| [Cahier des charges](docs/01-cahier-des-charges.md) | Contexte, acteurs, fonctionnalités, règles métier, exigences |
+| [User stories](docs/02-user-stories.md) | 23 stories avec critères d'acceptation, découpage en sprints, définition de « terminé » |
+| [Modèle de données](docs/03-modele-de-donnees.md) | Diagramme entité-association et choix de conception |
+| [Architecture](docs/04-architecture.md) | Vue d'ensemble, organisation du code, routes de l'API, Docker, CI, déploiement |
+| [Organisation de l'équipe](docs/05-organisation-equipe.md) | Rôles, cérémonies Scrum, tableau Kanban, flux Git |
+
+## Stack technique
+
+| Couche | Technologies |
+|---|---|
+| Backend | Python, Django, Django REST Framework, JWT |
+| Base de données | PostgreSQL |
+| Frontend | React.js, Vite, React Router, Tailwind CSS |
+| Tests | pytest, pytest-django (TDD) ; Vitest |
+| DevOps | Docker, docker compose, GitHub Actions |
+| Méthode | Scrum, Kanban (GitHub Projects), GitHub Flow |
