@@ -12,6 +12,7 @@ from rest_framework.exceptions import ValidationError
 from accounts.models import User
 from cart.models import Cart
 from catalog.models import Variant, format_size
+from catalog.stock import check_available, lock_variants
 
 from .emails import send_order_email
 from .models import DELIVERY_FEES, DeliveryMode, Order, OrderItem, OrderStatus, PaymentMethod
@@ -38,17 +39,6 @@ def next_statuses(order):
     return [status for status in allowed if status != excluded]
 
 
-def lock_variants(variant_ids):
-    """
-    Verrouille les declinaisons concernees jusqu'a la fin de la transaction (SELECT ... FOR UPDATE),
-    toujours dans le meme ordre pour eviter les interblocages : deux clients ne peuvent pas
-    acheter en meme temps la derniere paire.
-    """
-    return list(
-        Variant.objects.select_for_update().filter(id__in=variant_ids).order_by('id').values_list('id', flat=True)
-    )
-
-
 @transaction.atomic
 def place_order(user, *, delivery_mode, payment_method, phone, delivery_zone='', delivery_address=''):
     """US-10 : transforme le panier en commande."""
@@ -58,17 +48,10 @@ def place_order(user, *, delivery_mode, payment_method, phone, delivery_zone='',
         raise ValidationError({'detail': _('Votre panier est vide.')})
 
     lock_variants([item.variant_id for item in items])
-    available = dict(
-        Variant.objects.with_available()
-        .filter(id__in=[item.variant_id for item in items])
-        .values_list('id', 'available')
+    check_available(
+        [(item.variant, item.quantity) for item in items],
+        _('Stock insuffisant pour : %(names)s. Modifiez votre panier.'),
     )
-    missing = [item for item in items if item.quantity > available[item.variant_id]]
-    if missing:
-        names = ', '.join(f'{item.variant.product.name} ({format_size(item.variant.size)})' for item in missing)
-        raise ValidationError(
-            {'detail': _('Stock insuffisant pour : %(names)s. Modifiez votre panier.') % {'names': names}}
-        )
 
     subtotal = sum(item.variant.product.price * item.quantity for item in items)
     delivery_fee = DELIVERY_FEES[delivery_zone] if delivery_mode == DeliveryMode.LIVRAISON else 0

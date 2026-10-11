@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'catalog',
     'cart',
     'orders',
+    'reservations',
+    'sales',
 ]
 
 MIDDLEWARE = [
@@ -127,6 +129,13 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'ShoeManager API',
     'DESCRIPTION': 'Boutique en ligne et gestion d’un magasin de chaussures',
     'VERSION': '1.0.0',
+    # Noms distincts pour les listes de choix homonymes (commandes, reservations, caisse)
+    'ENUM_NAME_OVERRIDES': {
+        'OrderStatusEnum': 'orders.models.OrderStatus',
+        'OrderPaymentMethodEnum': 'orders.models.PaymentMethod',
+        'ReservationStatusEnum': 'reservations.models.ReservationStatus',
+        'SalePaymentMethodEnum': 'sales.models.SalePaymentMethod',
+    },
 }
 
 # Emails : affiches dans la console en developpement ; serveur SMTP ou API en production
