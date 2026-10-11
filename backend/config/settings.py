@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     # Applications du projet
     'accounts',
     'catalog',
+    'cart',
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -126,6 +128,14 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Boutique en ligne et gestion d’un magasin de chaussures',
     'VERSION': '1.0.0',
 }
+
+# Emails : affiches dans la console en developpement ; serveur SMTP ou API en production
+MAILERS = {
+    'default': {
+        'BACKEND': os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend'),
+    },
+}
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'FranckShoese <no-reply@franckshoese.example>')
 
 # Seul le frontend peut appeler l'API depuis un navigateur
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5173')

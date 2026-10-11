@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F
+from django.db.models import F, OuterRef, Subquery, Sum, Value
+from django.db.models.functions import Coalesce, Greatest
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -125,10 +126,19 @@ class ProductImage(models.Model):
 class VariantQuerySet(models.QuerySet):
     def with_available(self):
         """
-        Stock disponible (regle R2) = stock physique - paires reservees - paires commandees non preparees.
-        Les reservations et commandes arrivent aux sprints suivants : pour l'instant, disponible = stock.
+        Stock disponible (regle R2) = stock physique - paires commandees mais pas encore preparees
+        (- paires reservees, au sprint 3). Calcule par la base, jamais stocke : aucune incoherence possible.
         """
-        return self.annotate(available=F('stock'))
+        from orders.models import PENDING_STATUSES, OrderItem
+
+        ordered = (
+            OrderItem.objects.filter(variant=OuterRef('pk'), order__status__in=PENDING_STATUSES)
+            .values('variant')
+            .annotate(total=Sum('quantity'))
+            .values('total')
+        )
+        held = Coalesce(Subquery(ordered), Value(0))
+        return self.annotate(available=Greatest(F('stock') - held, Value(0)))
 
 
 class Variant(models.Model):
