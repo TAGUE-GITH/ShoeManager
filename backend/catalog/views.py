@@ -1,18 +1,27 @@
 from django.db.models import Prefetch, ProtectedError
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
-from rest_framework import mixins, status, viewsets
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import mixins, serializers, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from common.permissions import IsManager
 
 from .filters import ProductFilter
-from .models import Brand, Category, Color, Product, Variant
+from .images import prepare_image
+from .models import Brand, Category, Color, Product, ProductImage, Variant
 from .serializers import (
     BrandSerializer,
     CategorySerializer,
     CategoryTreeSerializer,
     ColorSerializer,
+    ImageSerializer,
     ManageProductSerializer,
     ManageVariantSerializer,
     ProductDetailSerializer,
@@ -34,7 +43,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             Product.objects.filter(is_published=True)
             .select_related('brand', 'category__parent')
             .prefetch_related(
-                'images',
+                # Les octets des photos ne sont pas charges pour le catalogue : seulement leur adresse
+                Prefetch('images', queryset=ProductImage.objects.defer('data')),
                 'category__children',
                 Prefetch('variants', queryset=Variant.objects.with_available().select_related('color')),
             )
@@ -115,8 +125,48 @@ class ManageProductViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsManager]
     serializer_class = ManageProductSerializer
-    queryset = Product.objects.select_related('brand', 'category')
+    queryset = Product.objects.select_related('brand', 'category').prefetch_related(
+        Prefetch('images', queryset=ProductImage.objects.defer('data'))
+    )
     search_fields = ['name']
+
+    @extend_schema(
+        request=inline_serializer('ImageUpload', {'image': serializers.ImageField()}),
+        responses={201: ImageSerializer},
+    )
+    @action(detail=True, methods=['post'], parser_classes=[MultiPartParser])
+    def images(self, request, pk=None):
+        """Ajoute une photo au produit (redimensionnee et convertie en WebP)."""
+        product = self.get_object()
+        uploaded = request.FILES.get('image')
+        if uploaded is None:
+            return Response({'image': [_('Choisissez une photo.')]}, status=status.HTTP_400_BAD_REQUEST)
+        image = ProductImage.objects.create(
+            product=product, data=prepare_image(uploaded), position=product.images.count()
+        )
+        return Response(ImageSerializer(image, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
+
+class ImageView(APIView):
+    """Photo d'un produit, publique et mise en cache longtemps (une photo ne change jamais : on en ajoute une autre)."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    @extend_schema(responses={(200, 'image/webp'): OpenApiTypes.BINARY})
+    def get(self, request, pk):
+        image = get_object_or_404(ProductImage, pk=pk)
+        response = HttpResponse(bytes(image.data), content_type=image.content_type)
+        response['Cache-Control'] = 'public, max-age=31536000, immutable'
+        return response
+
+
+class ManageImageViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """Suppression d'une photo de produit (gerant)."""
+
+    permission_classes = [IsManager]
+    serializer_class = ImageSerializer
+    queryset = ProductImage.objects.defer('data')
 
 
 class ManageVariantViewSet(viewsets.ModelViewSet):

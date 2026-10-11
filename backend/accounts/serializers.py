@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User
+from .models import Role, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -62,3 +62,98 @@ class LoginSerializer(serializers.Serializer):
             raise AuthenticationFailed(_('Email ou mot de passe incorrect.'))
         attrs['user'] = user
         return attrs
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """US-03 : nouveau mot de passe choisi grace au lien recu par email."""
+
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+
+    def validate(self, attrs):
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.encoding import force_str
+        from django.utils.http import urlsafe_base64_decode
+
+        try:
+            user = User.objects.get(pk=force_str(urlsafe_base64_decode(attrs['uid'])), is_active=True)
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            user = None
+        if user is None or not default_token_generator.check_token(user, attrs['token']):
+            raise serializers.ValidationError(
+                {'detail': _('Ce lien est invalide ou a expiré. Faites une nouvelle demande.')}
+            )
+        try:
+            password_validation.validate_password(attrs['password'], user)
+        except Exception as error:
+            raise serializers.ValidationError({'password': list(error.messages)}) from error
+        attrs['user'] = user
+        return attrs
+
+
+class TeamMemberSerializer(serializers.ModelSerializer):
+    """US-04 : membres de l'equipe (gerant et vendeurs)."""
+
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'phone', 'role', 'is_active', 'last_login', 'date_joined']
+        read_only_fields = ['last_login', 'date_joined']
+
+    def validate_email(self, value):
+        email = value.lower()
+        if User.objects.filter(email__iexact=email).exclude(pk=getattr(self.instance, 'pk', None)).exists():
+            raise serializers.ValidationError(_('Un compte existe déjà avec cet email.'))
+        return email
+
+    def validate_role(self, role):
+        if role not in (Role.VENDEUR, Role.GERANT):
+            raise serializers.ValidationError(_('Un membre de l’équipe est vendeur ou gérant.'))
+        return role
+
+    def validate(self, attrs):
+        # Le gerant connecte ne peut ni se desactiver ni perdre son role (la boutique resterait sans gerant)
+        request = self.context['request']
+        if self.instance is not None and self.instance.pk == request.user.pk:
+            if attrs.get('is_active') is False or attrs.get('role', Role.GERANT) != Role.GERANT:
+                raise serializers.ValidationError(
+                    {'detail': _('Vous ne pouvez pas désactiver votre propre compte ni retirer votre rôle de gérant.')}
+                )
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.setdefault('role', Role.VENDEUR)
+        # Pas de mot de passe : le vendeur choisit le sien avec le lien recu par email
+        return User.objects.create_user(password=None, **validated_data)
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    """US-21 : fiche client vue par la boutique."""
+
+    orders_count = serializers.IntegerField(read_only=True)
+    purchases_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'phone',
+            'loyalty_points',
+            'date_joined',
+            'orders_count',
+            'purchases_count',
+        ]
+
+
+class DemoSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(choices=Role.choices, default=Role.CLIENT)

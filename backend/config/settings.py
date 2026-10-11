@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'orders',
     'reservations',
     'sales',
+    'dashboard',
 ]
 
 MIDDLEWARE = [
@@ -145,6 +146,14 @@ MAILERS = {
     },
 }
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'FranckShoese <no-reply@franckshoese.example>')
+
+# Adresse du site (liens envoyes par email : choix ou reinitialisation du mot de passe)
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+# Lien de reinitialisation du mot de passe valable 30 minutes (US-03)
+PASSWORD_RESET_TIMEOUT = 30 * 60
+
+# Bouton « Essayer la demo » : connexion a un compte de demonstration (US-22)
+DEMO_ENABLED = os.environ.get('DEMO_ENABLED', 'true').lower() == 'true'
 
 # Seul le frontend peut appeler l'API depuis un navigateur
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5173')

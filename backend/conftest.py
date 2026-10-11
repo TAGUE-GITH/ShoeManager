@@ -37,3 +37,9 @@ def client_for(make_user):
         return client
 
     return factory
+
+
+@pytest.fixture(autouse=True)
+def fast_password_hasher(settings):
+    """Tests uniquement : hachage rapide des mots de passe (l'algorithme lent reste celui de la production)."""
+    settings.PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']

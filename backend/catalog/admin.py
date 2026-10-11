@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Brand, Category, Color, Product, ProductImage, Variant
+from .models import Brand, Category, Color, Product, Variant
 
 
 @admin.register(Category)
@@ -28,14 +28,10 @@ class VariantInline(admin.TabularInline):
     readonly_fields = ['sku']
 
 
-class ImageInline(admin.TabularInline):
-    model = ProductImage
-    extra = 1
-
-
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'brand', 'category', 'price', 'is_published', 'created_at']
     list_filter = ['is_published', 'category', 'brand']
     search_fields = ['name', 'brand__name']
-    inlines = [VariantInline, ImageInline]
+    # Les photos s'ajoutent depuis l'espace de gestion (redimensionnement et compression automatiques)
+    inlines = [VariantInline]

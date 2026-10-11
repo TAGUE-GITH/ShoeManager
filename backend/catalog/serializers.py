@@ -64,10 +64,19 @@ class CategorySerializer(serializers.ModelSerializer):
         return parent
 
 
+def absolute(request, path):
+    return request.build_absolute_uri(path) if request else path
+
+
 class ImageSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
-        fields = ['id', 'image', 'position']
+        fields = ['id', 'url', 'position']
+
+    def get_url(self, image) -> str:
+        return absolute(self.context.get('request'), image.url)
 
 
 class PublicVariantSerializer(serializers.ModelSerializer):
@@ -98,8 +107,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         first = next(iter(product.images.all()), None)
         if not first:
             return None
-        request = self.context.get('request')
-        return request.build_absolute_uri(first.image.url) if request else first.image.url
+        return absolute(self.context.get('request'), first.url)
 
     def _available_variants(self, product):
         # Declinaisons prechargees avec leur stock disponible (voir ProductViewSet.get_queryset)

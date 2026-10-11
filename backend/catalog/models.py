@@ -111,8 +111,14 @@ class Product(models.Model):
 
 
 class ProductImage(models.Model):
+    """
+    Photo d'un produit, stockee en base de donnees (deja redimensionnee et compressee en WebP) :
+    les hebergeurs gratuits effacent les fichiers enregistres sur le disque a chaque redeploiement.
+    """
+
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(_('photo'), upload_to='products/')
+    data = models.BinaryField(_('photo'))
+    content_type = models.CharField(max_length=30, default='image/webp')
     position = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
@@ -121,6 +127,10 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f'{self.product} (photo {self.position})'
+
+    @property
+    def url(self):
+        return f'/api/images/{self.pk}/'
 
 
 class VariantQuerySet(models.QuerySet):
