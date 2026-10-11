@@ -102,7 +102,7 @@ Comptes de démonstration créés par `seed_demo` (mot de passe `demo-franckshoe
 ## Tests
 
 ```bash
-cd backend && pytest       # API : 154 tests
+cd backend && pytest       # API : 157 tests
 cd frontend && npm test    # interface : 25 tests
 ```
 

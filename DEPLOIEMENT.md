@@ -54,6 +54,15 @@ sur un bouton « Essayer » du site.
 Les emails partent par l'API web de Brevo ([`common/mail.py`](backend/common/mail.py)) : Render bloque les ports SMTP
 sur l'offre gratuite.
 
+## 5. Compte du gérant (administrateur)
+
+1. S'inscrire sur le site avec son email (bouton **Connexion** → **Créer un compte**).
+2. Sur Render, **Environment** : ajouter `MANAGER_EMAIL` = cet email, puis enregistrer (le service redémarre).
+3. Au démarrage, la commande `promote_manager` donne à ce compte le rôle de gérant et l'accès à l'administration Django
+   (`https://shoemanager-api.onrender.com/admin/`).
+4. Se déconnecter puis se reconnecter : l'onglet **Équipe** de l'espace boutique permet d'ajouter des vendeurs
+   (invitation par email) et de nommer d'autres gérants.
+
 ## Mises à jour
 
 Chaque `git push` sur `main` lance les tests (GitHub Actions), puis Render et Vercel redéploient automatiquement.
