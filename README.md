@@ -104,7 +104,7 @@ Comptes de démonstration **en local uniquement** (créés par `seed_demo`, mot 
 
 ```bash
 cd backend && pytest       # API : 170 tests
-cd frontend && npm test    # interface : 27 tests
+cd frontend && npm test    # interface : 28 tests
 ```
 
 Les tests sont écrits avant le code (TDD), à partir des critères d'acceptation des user stories. GitHub Actions les exécute à chaque envoi, avec une vraie base PostgreSQL.

@@ -386,7 +386,8 @@ export default {
     save: 'Enregistrer',
     create: 'Créer le produit',
     saved: 'Produit enregistré.',
-    afterCreate: 'Après la création, vous pourrez ajouter les photos, les pointures et le stock.',
+    afterCreate:
+      'Les photos seront envoyées en cliquant sur « Créer le produit ». Vous ajouterez ensuite les pointures et le stock.',
     photos: 'Photos',
     photosHint: 'JPEG, PNG ou WebP, 8 Mo maximum. La première photo est utilisée dans le catalogue.',
     addPhoto: 'Ajouter des photos',
@@ -405,6 +406,9 @@ export default {
     addVariant: 'Ajouter',
     delete: 'Supprimer le produit',
     confirmDelete: 'Supprimer définitivement « {{name}} », ses photos et ses pointures ?',
+    removePhoto: 'Retirer la photo {{name}}',
+    photoFailed:
+      'Le produit est créé, mais une photo n’a pas pu être envoyée ({{error}}). Ajoutez-la à nouveau ci-dessous.',
   },
   categories: {
     intro: 'Les rayons (Hommes, Femmes, Enfants) contiennent les catégories où sont rangés les produits.',

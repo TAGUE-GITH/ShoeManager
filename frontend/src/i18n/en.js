@@ -386,7 +386,7 @@ export default {
     save: 'Save',
     create: 'Create the product',
     saved: 'Product saved.',
-    afterCreate: 'Once the product is created, you can add photos, sizes and stock.',
+    afterCreate: 'Photos are uploaded when you click “Create the product”. You will then add sizes and stock.',
     photos: 'Photos',
     photosHint: 'JPEG, PNG or WebP, 8 MB max. The first photo is used in the catalog.',
     addPhoto: 'Add photos',
@@ -405,6 +405,8 @@ export default {
     addVariant: 'Add',
     delete: 'Delete the product',
     confirmDelete: 'Permanently delete “{{name}}”, its photos and sizes?',
+    removePhoto: 'Remove the photo {{name}}',
+    photoFailed: 'The product was created, but a photo could not be uploaded ({{error}}). Add it again below.',
   },
   categories: {
     intro: 'Departments (Men, Women, Kids) contain the categories products are filed in.',

@@ -1,7 +1,7 @@
 import { ImagePlus, Plus, Search, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { errorMessage, fieldErrors } from '../../api/client'
 import { manageApi } from '../../api/resources'
 import { buttonClasses } from '../../components/buttonStyles'
@@ -120,7 +120,7 @@ function ProductForm({ product, onSaved }) {
     try {
       const saved = await manageApi.saveProduct(product?.id, form)
       setFeedback({ type: 'success', text: t('catalogAdmin.saved') })
-      onSaved(saved)
+      await onSaved(saved)
     } catch (err) {
       const byField = fieldErrors(err)
       setErrors(byField)
@@ -286,6 +286,52 @@ function Photos({ product, onChange }) {
   )
 }
 
+// Creation : photos choisies a l'avance, avec apercu ; elles sont envoyees juste apres l'enregistrement du produit
+function PendingPhotos({ files, onChange }) {
+  const { t } = useTranslation()
+  const previews = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files])
+  useEffect(() => () => previews.forEach((url) => URL.revokeObjectURL(url)), [previews])
+
+  return (
+    <section className="rounded-2xl bg-white p-5 ring-1 ring-stone-200">
+      <h2 className="font-bold text-ink">{t('catalogAdmin.photos')}</h2>
+      <p className="text-sm text-stone-500">{t('catalogAdmin.photosHint')}</p>
+      <ul className="mt-3 grid grid-cols-3 gap-3">
+        {previews.map((url, index) => (
+          <li key={url} className="relative aspect-square overflow-hidden rounded-xl bg-stone-100">
+            <img src={url} alt="" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange(files.filter((_, i) => i !== index))}
+              className="absolute top-1.5 right-1.5 rounded-lg bg-white/90 p-1.5 text-red-700 shadow"
+              aria-label={t('catalogAdmin.removePhoto', { name: files[index].name })}
+            >
+              <Trash2 className="size-4" aria-hidden />
+            </button>
+          </li>
+        ))}
+        <li>
+          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-stone-300 text-center text-xs font-semibold text-stone-600 hover:border-brand-600 hover:text-brand-700">
+            <ImagePlus className="size-6" aria-hidden />
+            {t('catalogAdmin.addPhoto')}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              onChange={(event) => {
+                onChange([...files, ...event.target.files])
+                event.target.value = ''
+              }}
+            />
+          </label>
+        </li>
+      </ul>
+      <p className="mt-3 text-xs text-stone-500">{t('catalogAdmin.afterCreate')}</p>
+    </section>
+  )
+}
+
 function Variants({ product }) {
   const { t } = useTranslation()
   const [version, setVersion] = useState(0)
@@ -447,6 +493,8 @@ export function ProductEditorPage() {
   const isNew = id === 'nouveau'
   const [version, setVersion] = useState(0)
   const [deleteError, setDeleteError] = useState('')
+  const [pendingPhotos, setPendingPhotos] = useState([])
+  const photoError = useLocation().state?.photoError
   const {
     data: product,
     loading,
@@ -456,6 +504,19 @@ export function ProductEditorPage() {
   if (error) return <Alert>{error}</Alert>
   // Juste apres la creation, l'adresse change avant que le produit ne soit charge
   if ((loading || !isNew) && !product) return <Loader />
+
+  // Creation : on enregistre le produit, puis on envoie les photos choisies avant d'ouvrir sa fiche
+  const created = async (saved) => {
+    let failure = ''
+    for (const file of pendingPhotos) {
+      try {
+        await manageApi.uploadImage(saved.id, file)
+      } catch (err) {
+        failure = `${file.name} : ${errorMessage(err)}`
+      }
+    }
+    navigate(`/gestion/catalogue/${saved.id}`, { replace: true, state: failure ? { photoError: failure } : null })
+  }
 
   const remove = async () => {
     if (!window.confirm(t('catalogAdmin.confirmDelete', { name: product.name }))) return
@@ -484,6 +545,11 @@ export function ProductEditorPage() {
           </Button>
         )}
       </div>
+      {photoError && (
+        <div className="mt-3">
+          <Alert>{t('catalogAdmin.photoFailed', { error: photoError })}</Alert>
+        </div>
+      )}
       {deleteError && (
         <div className="mt-3">
           <Alert>{deleteError}</Alert>
@@ -493,9 +559,7 @@ export function ProductEditorPage() {
         <ProductForm
           key={product?.id ?? 'new'}
           product={product}
-          onSaved={(saved) =>
-            isNew ? navigate(`/gestion/catalogue/${saved.id}`, { replace: true }) : setVersion((v) => v + 1)
-          }
+          onSaved={(saved) => (isNew ? created(saved) : setVersion((v) => v + 1))}
         />
         {product ? (
           <div className="space-y-6">
@@ -503,7 +567,7 @@ export function ProductEditorPage() {
             <Variants product={product} />
           </div>
         ) : (
-          <p className="text-sm text-stone-500">{t('catalogAdmin.afterCreate')}</p>
+          <PendingPhotos files={pendingPhotos} onChange={setPendingPhotos} />
         )}
       </div>
     </>
