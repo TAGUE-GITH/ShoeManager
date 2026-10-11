@@ -10,7 +10,7 @@ Projet full-stack réalisé en **équipe de 3**, en méthode **Agile (Scrum + Ka
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
 
-> **État du projet :** Sprint 3 terminé (réservations et caisse). Prochain sprint : tableau de bord, finitions et mise en ligne.
+> **État du projet :** Sprint 4 en cours : tableau de bord et gestion de la boutique terminés, mise en ligne à venir.
 
 ![CI](https://github.com/TAGUE-GITH/ShoeManager/actions/workflows/ci.yml/badge.svg)
 
@@ -61,7 +61,8 @@ La boutique **FranckShoese** (Douala) gérait ses ventes sur un cahier et ses r�
 | 1 | Comptes (inscription, connexion JWT) et catalogue (rayons, filtres, fiche produit) | ✅ |
 | 2 | Panier, commande en ligne (livraison ou retrait), suivi, traitement par la boutique, emails | ✅ |
 | 3 | Réservation 48 h avec expiration automatique, encaissement en boutique, caisse, reçu PDF | ✅ |
-| 4 | Tableau de bord, finitions et mise en ligne | À venir |
+| 4 | Tableau de bord du gérant, catalogue avec photos, alertes de stock, équipe, fiches clients, mot de passe oublié, comptes de démonstration | ✅ |
+| 5 | Mise en ligne (Render, Neon, Vercel, Brevo) | À venir |
 
 ## Lancer le projet en local
 
@@ -98,8 +99,8 @@ Comptes de démonstration créés par `seed_demo` (mot de passe `demo-franckshoe
 ## Tests
 
 ```bash
-cd backend && pytest       # API : 111 tests
-cd frontend && npm test    # interface : 20 tests
+cd backend && pytest       # API : 149 tests
+cd frontend && npm test    # interface : 25 tests
 ```
 
 Les tests sont écrits avant le code (TDD), à partir des critères d'acceptation des user stories. GitHub Actions les exécute à chaque envoi, avec une vraie base PostgreSQL.

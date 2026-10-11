@@ -58,3 +58,37 @@ export const salesApi = {
     setTimeout(() => URL.revokeObjectURL(url), 60_000)
   },
 }
+
+export const accountApi = {
+  demo: (role) => api.post('/auth/demo/', { role }).then(data),
+  requestReset: (email) => api.post('/auth/password-reset/', { email }).then(data),
+  confirmReset: (form) => api.post('/auth/password-reset/confirm/', form).then(data),
+}
+
+export const manageApi = {
+  dashboard: () => api.get('/manage/dashboard/').then(data),
+  stockAlerts: () => api.get('/manage/stock-alerts/').then(data),
+  team: () => api.get('/manage/team/').then(data),
+  addMember: (member) => api.post('/manage/team/', member).then(data),
+  updateMember: (id, changes) => api.patch(`/manage/team/${id}/`, changes).then(data),
+  customers: (params) => api.get('/manage/customers/', { params }).then(data),
+  products: (params) => api.get('/manage/products/', { params }).then(data),
+  product: (id) => api.get(`/manage/products/${id}/`).then(data),
+  saveProduct: (id, product) =>
+    (id ? api.patch(`/manage/products/${id}/`, product) : api.post('/manage/products/', product)).then(data),
+  categories: () => api.get('/manage/categories/').then(data),
+  brands: () => api.get('/manage/brands/').then(data),
+  addBrand: (name) => api.post('/manage/brands/', { name }).then(data),
+  colors: () => api.get('/manage/colors/').then(data),
+  addColor: (color) => api.post('/manage/colors/', color).then(data),
+  variants: (product) => api.get('/manage/variants/', { params: { product, page_size: 100 } }).then(data),
+  addVariant: (variant) => api.post('/manage/variants/', variant).then(data),
+  updateVariant: (id, changes) => api.patch(`/manage/variants/${id}/`, changes).then(data),
+  deleteVariant: (id) => api.delete(`/manage/variants/${id}/`),
+  uploadImage: (productId, file) => {
+    const body = new FormData()
+    body.append('image', file)
+    return api.post(`/manage/products/${productId}/images/`, body).then(data)
+  },
+  deleteImage: (id) => api.delete(`/manage/images/${id}/`),
+}

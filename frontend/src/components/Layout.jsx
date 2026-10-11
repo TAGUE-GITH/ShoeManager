@@ -86,13 +86,13 @@ function Header() {
         <div className="ml-auto hidden w-56 xl:block 2xl:w-64">
           <SearchBox />
         </div>
-        <div className="ml-auto flex items-center gap-2 xl:ml-0">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2 xl:ml-0">
           <div className="hidden sm:block">
             <LanguageSwitcher />
           </div>
           {isStaff && (
             <Link
-              to="/gestion/commandes"
+              to="/gestion"
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold whitespace-nowrap text-stone-700 hover:bg-stone-100"
               title={t('nav.shopSpace')}
             >

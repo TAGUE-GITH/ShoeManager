@@ -137,6 +137,8 @@ class ProductDetailSerializer(ProductListSerializer):
 
 
 class ManageProductSerializer(serializers.ModelSerializer):
+    images = ImageSerializer(many=True, read_only=True)
+
     class Meta:
         model = Product
         fields = [
@@ -150,6 +152,7 @@ class ManageProductSerializer(serializers.ModelSerializer):
             'low_stock_threshold',
             'is_published',
             'created_at',
+            'images',
         ]
         read_only_fields = ['slug', 'created_at']
 

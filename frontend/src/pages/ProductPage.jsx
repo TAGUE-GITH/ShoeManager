@@ -109,7 +109,7 @@ export default function ProductPage() {
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
         <div className="flex aspect-square items-center justify-center rounded-3xl bg-gradient-to-br from-stone-100 to-brand-50 p-10">
           {product.images[0] ? (
-            <img src={product.images[0].image} alt={product.name} className="h-full w-full object-contain" />
+            <img src={product.images[0].url} alt={product.name} className="h-full w-full object-contain" />
           ) : (
             <ShoeIllustration shape={shoeShape(product.category.name)} color={color?.hex_code} className="w-full" />
           )}

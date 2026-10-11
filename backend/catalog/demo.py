@@ -154,8 +154,9 @@ def seed():
             continue
         for color_name in color_names:
             for size in SIZES[parent_name]:
-                # Environ une pointure sur six epuisee, pour montrer les ruptures
-                stock = 0 if rng.random() < 0.17 else rng.randint(1, 9)
+                # Quelques ruptures et stocks bas pour les alertes, le reste bien approvisionne
+                draw = rng.random()
+                stock = 0 if draw < 0.05 else rng.randint(1, 3) if draw < 0.12 else rng.randint(4, 12)
                 Variant.objects.create(product=product, size=Decimal(size), color=colors[color_name], stock=stock)
 
     for role, login, first_name, last_name in ACCOUNTS:

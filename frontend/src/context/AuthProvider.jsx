@@ -35,7 +35,10 @@ export function AuthProvider({ children }) {
   const login = useCallback((credentials) => authApi.login(credentials).then(openSession), [openSession])
   const register = useCallback((form) => authApi.register(form).then(openSession), [openSession])
 
-  const value = useMemo(() => ({ user, loading, login, register, logout }), [user, loading, login, register, logout])
+  const value = useMemo(
+    () => ({ user, loading, login, register, logout, openSession }),
+    [user, loading, login, register, logout, openSession],
+  )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

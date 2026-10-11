@@ -81,3 +81,19 @@ class TestProductImages:
 
         assert manager.delete(f'/api/manage/images/{image_id}/').status_code == 204
         assert ProductImage.objects.count() == 0
+
+    def test_the_manager_product_sheet_lists_photos_and_all_variants(self, client_for):
+        from catalog.tests.factories import color, variant
+
+        manager = client_for(Role.GERANT)
+        item = product()
+        for size in range(36, 60):
+            variant(item, size=size, color_=color('Noir'), stock=1)
+        manager.post(upload_url(item), {'image': photo()}, format='multipart')
+
+        sheet = manager.get(f'/api/manage/products/{item.id}/').data
+        variants = manager.get('/api/manage/variants/', {'product': item.id}).data
+
+        assert len(sheet['images']) == 1
+        # Toutes les declinaisons d'un produit en une fois (pas de pagination a 20)
+        assert len(variants) == 24

@@ -174,5 +174,7 @@ class ManageVariantViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsManager]
     serializer_class = ManageVariantSerializer
+    # Toutes les pointures d'un produit en une fois (une trentaine au plus)
+    pagination_class = None
     queryset = Variant.objects.select_related('product', 'color')
     filterset_fields = ['product']

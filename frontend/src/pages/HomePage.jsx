@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { catalogApi } from '../api/resources'
 import ProductCard from '../components/ProductCard'
+import DemoButtons from '../components/DemoButtons'
 import ShoeIllustration from '../components/ShoeIllustration'
 import { buttonClasses } from '../components/buttonStyles'
 import { Loader } from '../components/ui'
+import { useAuth } from '../context/AuthProvider'
 import { useFetch } from '../hooks/useFetch'
 
 const CATEGORY_LOOK = [
@@ -16,6 +18,7 @@ const CATEGORY_LOOK = [
 
 export default function HomePage() {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const { data: categories } = useFetch(catalogApi.categories, 'categories')
   const { data: latest, loading } = useFetch(() => catalogApi.products({ page: 1 }), 'latest')
 
@@ -46,6 +49,11 @@ export default function HomePage() {
                 {t('home.howItWorks')}
               </a>
             </div>
+            {!user && (
+              <div className="mt-8 border-t border-white/10 pt-6">
+                <DemoButtons dark />
+              </div>
+            )}
           </div>
           <div className="relative">
             <div className="absolute inset-6 rounded-full bg-brand-700/30 blur-3xl" aria-hidden />

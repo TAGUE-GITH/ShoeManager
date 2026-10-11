@@ -82,11 +82,12 @@ export function OrderSummary({ order }) {
 }
 
 // Page reservee aux utilisateurs connectes (et eventuellement au personnel de la boutique)
-export function RequireAuth({ staff = false, children }) {
+export function RequireAuth({ staff = false, manager = false, children }) {
   const { user, loading } = useAuth()
   const location = useLocation()
   if (loading) return <Loader />
   if (!user) return <Navigate to="/connexion" replace state={{ from: location.pathname + location.search }} />
   if (staff && !['GERANT', 'VENDEUR'].includes(user.role)) return <Navigate to="/" replace />
+  if (manager && user.role !== 'GERANT') return <Navigate to="/gestion" replace />
   return children
 }

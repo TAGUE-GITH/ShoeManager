@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { errorMessage, fieldErrors } from '../api/client'
+import DemoButtons from '../components/DemoButtons'
 import { LogoMark } from '../components/Logo'
 import { Alert, Button, Field } from '../components/ui'
 import { useAuth } from '../context/AuthProvider'
@@ -71,6 +72,11 @@ export function LoginPage() {
         <Alert>{form.error}</Alert>
         <Field label={t('fields.email')} type="email" autoComplete="email" required {...form.bind('email')} />
         <Field label={t('fields.password')} type="password" autoComplete="current-password" required {...form.bind('password')} />
+        <p className="-mt-2 text-right text-sm">
+          <Link to="/mot-de-passe-oublie" className="font-semibold text-brand-700 hover:text-brand-800">
+            {t('password.forgot')}
+          </Link>
+        </p>
         <Button type="submit" loading={form.sending} className="w-full">
           {t('auth.loginButton')}
         </Button>
@@ -81,6 +87,9 @@ export function LoginPage() {
           {t('auth.createAccount')}
         </Link>
       </p>
+      <div className="mt-6 border-t border-stone-200 pt-6">
+        <DemoButtons />
+      </div>
     </AuthCard>
   )
 }
