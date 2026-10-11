@@ -1,5 +1,3 @@
-from decimal import ROUND_HALF_UP, Decimal
-
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -28,15 +26,8 @@ class DeliveryMode(models.TextChoices):
 
 class DeliveryZone(models.TextChoices):
     DOUALA = 'DOUALA', _('Douala')
-    AUTRE_VILLE = 'AUTRE_VILLE', _('Autre ville')
-
-
-# Regle R8 : frais de livraison = 10 % du montant des chaussures (10 000 FCFA -> 1 000 FCFA), retrait gratuit
-DELIVERY_RATE = Decimal('0.10')
-
-
-def delivery_fee_for(subtotal):
-    return (Decimal(subtotal) * DELIVERY_RATE).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+    AUTRE_VILLE = 'AUTRE_VILLE', _('Autre ville du Cameroun')
+    ETRANGER = 'ETRANGER', _('Étranger')
 
 
 class PaymentMethod(models.TextChoices):
@@ -51,6 +42,7 @@ class Order(models.Model):
     status = models.CharField(_('statut'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.EN_ATTENTE)
     delivery_mode = models.CharField(_('mode de réception'), max_length=10, choices=DeliveryMode.choices)
     delivery_zone = models.CharField(_('zone'), max_length=12, choices=DeliveryZone.choices, blank=True)
+    delivery_city = models.CharField(_('ville ou pays de livraison'), max_length=40, blank=True)
     delivery_address = models.CharField(_('adresse de livraison'), max_length=255, blank=True)
     phone = models.CharField(_('téléphone'), max_length=30)
     payment_method = models.CharField(_('paiement'), max_length=20, choices=PaymentMethod.choices)

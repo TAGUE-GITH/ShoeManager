@@ -48,7 +48,7 @@ function ManagedOrder({ order: initial }) {
           </p>
           <p className="text-sm text-stone-500">
             {order.delivery_mode === 'LIVRAISON'
-              ? `${t('checkout.delivery')} · ${order.delivery_address}`
+              ? `${t('checkout.delivery')} · ${[order.delivery_city, order.delivery_address].filter(Boolean).join(', ')}`
               : t('checkout.pickup')}{' '}
             · {t(`checkout.payments.${order.payment_method}`)} {order.is_paid && `(${t('orders.paid')})`}
           </p>

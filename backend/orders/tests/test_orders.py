@@ -14,7 +14,7 @@ ORDERS_URL = '/api/orders/'
 def delivery(**overrides):
     return {
         'delivery_mode': 'LIVRAISON',
-        'delivery_zone': 'DOUALA',
+        'delivery_city': 'DOUALA',
         'delivery_address': 'Akwa, rue Joss, immeuble Sapho',
         'phone': '+237 690 00 00 00',
         'payment_method': 'A_LA_LIVRAISON',
@@ -65,9 +65,9 @@ class TestPlaceOrder:
 
     @pytest.mark.parametrize(
         'payload, fee',
-        [(delivery(), 13000), (delivery(delivery_zone='AUTRE_VILLE'), 13000), (pickup(), 0)],
+        [(delivery(), 1000), (delivery(delivery_city='YAOUNDE'), 13000), (pickup(), 0)],
     )
-    def test_delivery_fee_is_ten_percent_of_the_shoes(self, shopper, pair, payload, fee):
+    def test_delivery_fee_depends_on_the_destination(self, shopper, pair, payload, fee):
         fill_cart(shopper, pair, quantity=2)
 
         response = shopper.post(ORDERS_URL, payload, format='json')
@@ -80,7 +80,7 @@ class TestPlaceOrder:
         cheap = variant(product(name='Tong', price=12345), size=40, color_=color('Noir'), stock=2)
         fill_cart(shopper, cheap)
 
-        response = shopper.post(ORDERS_URL, delivery(), format='json')
+        response = shopper.post(ORDERS_URL, delivery(delivery_city='BAFOUSSAM'), format='json')
 
         assert response.data['delivery_fee'] == '1235'
 

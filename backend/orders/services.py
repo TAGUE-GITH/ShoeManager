@@ -14,8 +14,9 @@ from cart.models import Cart
 from catalog.models import Variant, format_size
 from catalog.stock import check_available, lock_variants
 
+from .delivery import BY_KEY, MIN_PAIRS_ABROAD, delivery_fee
 from .emails import send_order_email
-from .models import DeliveryMode, Order, OrderItem, OrderStatus, PaymentMethod, delivery_fee_for
+from .models import DeliveryMode, DeliveryZone, Order, OrderItem, OrderStatus, PaymentMethod
 
 # R5 : etapes autorisees depuis chaque statut
 TRANSITIONS = {
@@ -40,7 +41,7 @@ def next_statuses(order):
 
 
 @transaction.atomic
-def place_order(user, *, delivery_mode, payment_method, phone, delivery_zone='', delivery_address=''):
+def place_order(user, *, delivery_mode, payment_method, phone, delivery_city='', delivery_address=''):
     """US-10 : transforme le panier en commande."""
     cart = Cart.objects.filter(user=user).first()
     items = list(cart.items.select_related('variant__product', 'variant__color')) if cart else []
@@ -54,19 +55,31 @@ def place_order(user, *, delivery_mode, payment_method, phone, delivery_zone='',
     )
 
     subtotal = sum(item.variant.product.price * item.quantity for item in items)
-    delivery_fee = delivery_fee_for(subtotal) if delivery_mode == DeliveryMode.LIVRAISON else 0
+    pairs = sum(item.quantity for item in items)
+    city, zone, fee = '', '', 0
+    if delivery_mode == DeliveryMode.LIVRAISON:
+        city, zone = BY_KEY[delivery_city]
+        if zone == DeliveryZone.ETRANGER and pairs < MIN_PAIRS_ABROAD:
+            raise ValidationError(
+                {
+                    'delivery_city': _('Livraison à l’étranger à partir de %(count)s paires.')
+                    % {'count': MIN_PAIRS_ABROAD}
+                }
+            )
+        fee = delivery_fee(zone, subtotal, pairs)
     order = Order.objects.create(
         customer=user,
         delivery_mode=delivery_mode,
-        delivery_zone=delivery_zone if delivery_mode == DeliveryMode.LIVRAISON else '',
+        delivery_zone=zone,
+        delivery_city=city,
         delivery_address=delivery_address if delivery_mode == DeliveryMode.LIVRAISON else '',
         phone=phone,
         payment_method=payment_method,
         # Paiement Mobile Money simule : considere comme recu immediatement
         is_paid=payment_method == PaymentMethod.MOBILE_MONEY,
         subtotal=subtotal,
-        delivery_fee=delivery_fee,
-        total=subtotal + delivery_fee,
+        delivery_fee=fee,
+        total=subtotal + fee,
     )
     OrderItem.objects.bulk_create(
         OrderItem(

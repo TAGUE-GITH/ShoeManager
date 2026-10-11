@@ -85,7 +85,7 @@ Développer une application web qui permet à la boutique de :
 - **R5.** Statuts : `EN_ATTENTE → CONFIRMEE → EN_PREPARATION → EXPEDIEE (livraison) ou PRETE (retrait) → LIVREE`. Une commande peut être `ANNULEE` tant qu'elle n'est pas expédiée ou prête.
 - **R6.** Le stock physique diminue au passage `EN_PREPARATION` ; une annulation avant ce statut libère simplement la quantité retenue.
 - **R7.** Le **prix est figé** dans la commande au moment de la validation (un changement de prix ultérieur ne modifie pas les commandes passées).
-- **R8.** Frais de livraison : 10 % du montant des chaussures (10 000 XAF → 1 000 XAF), arrondis au franc ; retrait en boutique gratuit.
+- **R8.** Frais de livraison selon la destination choisie dans une liste : Douala 1 000 XAF ; autres villes du Cameroun 10 % du montant des chaussures (10 000 XAF → 1 000 XAF) ; étranger (Gabon, Tchad, Guinée) 20 % du montant, **à partir de 5 paires** ; **10 % de réduction** sur la livraison à partir de 10 paires ; retrait en boutique gratuit.
 
 ### Réservations
 

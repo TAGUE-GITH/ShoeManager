@@ -68,7 +68,7 @@ En tant que client, je veux ajouter des paires à mon panier.
 **US-10 — Passer commande** · M · 8 pts
 En tant que client, je veux valider mon panier avec livraison ou retrait en boutique.
 - Le stock disponible est vérifié **au moment de la validation**, dans une transaction (R3) ;
-- Les prix sont figés dans la commande (R7) ; les frais de livraison valent 10 % du montant des chaussures (R8) ;
+- Les prix sont figés dans la commande (R7) ; les frais de livraison dépendent de la ville ou du pays et du nombre de paires (R8) ;
 - Paiement : à la livraison, en boutique ou Mobile Money (simulé) ;
 - La commande est créée au statut `EN_ATTENTE` et un email de confirmation est envoyé.
 

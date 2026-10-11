@@ -1,11 +1,15 @@
 // Regles d'affichage des commandes (le serveur reste la reference : il refait tous les calculs)
 
-// Regle R8 : livraison = 10 % du montant des chaussures (10 000 FCFA -> 1 000 FCFA), retrait gratuit
-export const DELIVERY_RATE = 0.1
-
-export function deliveryFee(mode, subtotal) {
-  return mode === 'LIVRAISON' ? Math.round(Number(subtotal) * DELIVERY_RATE) : 0
+// Regle R8 (regles envoyees par l'API) : forfait a Douala, pourcentage ailleurs, reduction a partir de 10 paires
+export function deliveryFee(mode, zone, subtotal, pairs, rules) {
+  if (mode !== 'LIVRAISON' || !zone || !rules) return 0
+  let fee = zone === 'DOUALA' ? rules.douala_fee : (Number(subtotal) * rules.rates[zone]) / 100
+  if (pairs >= rules.bulk_pairs) fee = (fee * (100 - rules.bulk_discount)) / 100
+  return Math.round(fee)
 }
+
+// Livraison a l'etranger seulement a partir d'un minimum de paires
+export const tooFewPairsAbroad = (zone, pairs, rules) => zone === 'ETRANGER' && pairs < (rules?.min_pairs_abroad ?? 0)
 
 // Moyens de paiement possibles selon le mode de reception
 export function paymentOptions(mode) {

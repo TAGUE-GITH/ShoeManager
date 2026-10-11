@@ -1,13 +1,33 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { OrderTimeline } from '../components/orders'
-import { deliveryFee, orderSteps, paymentOptions } from '../utils/orders'
+import { deliveryFee, orderSteps, paymentOptions, tooFewPairsAbroad } from '../utils/orders'
 
 describe('regles d affichage des commandes', () => {
-  it('calcule la livraison a 10 % du montant des chaussures, retrait gratuit (R8)', () => {
-    expect(deliveryFee('LIVRAISON', 10000)).toBe(1000)
-    expect(deliveryFee('LIVRAISON', '12345')).toBe(1235)
-    expect(deliveryFee('RETRAIT', 10000)).toBe(0)
+  const rules = {
+    douala_fee: 1000,
+    rates: { AUTRE_VILLE: 10, ETRANGER: 20 },
+    min_pairs_abroad: 5,
+    bulk_pairs: 10,
+    bulk_discount: 10,
+  }
+
+  it('calcule la livraison selon la destination, retrait gratuit (R8)', () => {
+    expect(deliveryFee('LIVRAISON', 'DOUALA', 80000, 3, rules)).toBe(1000)
+    expect(deliveryFee('LIVRAISON', 'AUTRE_VILLE', '12345', 1, rules)).toBe(1235)
+    expect(deliveryFee('LIVRAISON', 'ETRANGER', 50000, 5, rules)).toBe(10000)
+    expect(deliveryFee('RETRAIT', 'DOUALA', 10000, 1, rules)).toBe(0)
+  })
+
+  it('accorde 10 % de reduction sur la livraison a partir de 10 paires', () => {
+    expect(deliveryFee('LIVRAISON', 'DOUALA', 100000, 10, rules)).toBe(900)
+    expect(deliveryFee('LIVRAISON', 'AUTRE_VILLE', 100000, 10, rules)).toBe(9000)
+  })
+
+  it('demande au moins 5 paires pour l etranger', () => {
+    expect(tooFewPairsAbroad('ETRANGER', 4, rules)).toBe(true)
+    expect(tooFewPairsAbroad('ETRANGER', 5, rules)).toBe(false)
+    expect(tooFewPairsAbroad('AUTRE_VILLE', 1, rules)).toBe(false)
   })
 
   it('propose les moyens de paiement compatibles avec le mode de reception', () => {

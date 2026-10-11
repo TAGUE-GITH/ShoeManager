@@ -10,7 +10,11 @@ import { useFetch } from '../hooks/useFetch'
 import { formatPrice } from '../utils/format'
 
 const dateFormat = (value, language) =>
-  new Date(value).toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  new Date(value).toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
 // US-11 : liste des commandes du client (affichee dans « Mon compte »)
 export function MyOrders() {
@@ -23,11 +27,15 @@ export function MyOrders() {
     <ul className="divide-y divide-stone-100 rounded-2xl bg-white ring-1 ring-stone-200">
       {data.results.map((order) => (
         <li key={order.id}>
-          <Link to={`/compte/commandes/${order.id}`} className="flex flex-wrap items-center gap-3 p-4 hover:bg-stone-50">
+          <Link
+            to={`/compte/commandes/${order.id}`}
+            className="flex flex-wrap items-center gap-3 p-4 hover:bg-stone-50"
+          >
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-ink">{order.reference}</p>
               <p className="text-sm text-stone-500">
-                {dateFormat(order.created_at, i18n.language)} · {t('cart.pairs', { count: order.items.reduce((sum, item) => sum + item.quantity, 0) })}
+                {dateFormat(order.created_at, i18n.language)} ·{' '}
+                {t('cart.pairs', { count: order.items.reduce((sum, item) => sum + item.quantity, 0) })}
               </p>
             </div>
             <StatusBadge status={order.status} />
@@ -51,7 +59,12 @@ export function OrderPage() {
   const [cancelling, setCancelling] = useState(false)
 
   if (loading) return <Loader />
-  if (error) return <div className="mx-auto max-w-xl px-4 py-16"><Alert>{error}</Alert></div>
+  if (error)
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16">
+        <Alert>{error}</Alert>
+      </div>
+    )
 
   const current = order ?? data
   const cancel = async () => {
@@ -70,7 +83,10 @@ export function OrderPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       {placed && (
-        <div className="mb-8 flex gap-3 rounded-2xl bg-emerald-50 p-5 text-emerald-900 ring-1 ring-emerald-200" role="status">
+        <div
+          className="mb-8 flex gap-3 rounded-2xl bg-emerald-50 p-5 text-emerald-900 ring-1 ring-emerald-200"
+          role="status"
+        >
           <CheckCircle2 className="size-6 shrink-0" aria-hidden />
           <div>
             <p className="font-semibold">{t('orders.thanks')}</p>
@@ -83,7 +99,9 @@ export function OrderPage() {
       </Link>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-ink">{t('orders.title', { reference: current.reference })}</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-ink">
+            {t('orders.title', { reference: current.reference })}
+          </h1>
           <p className="text-sm text-stone-500">{dateFormat(current.created_at, i18n.language)}</p>
         </div>
         <StatusBadge status={current.status} />
@@ -102,7 +120,7 @@ export function OrderPage() {
           <p className="font-semibold text-ink">{t('checkout.reception')}</p>
           <p className="mt-1 text-stone-600">
             {current.delivery_mode === 'LIVRAISON'
-              ? `${t('checkout.delivery')} · ${t(`checkout.zones.${current.delivery_zone}`)}`
+              ? `${t('checkout.delivery')} · ${current.delivery_city || t(`checkout.zones.${current.delivery_zone}`)}`
               : t('checkout.pickup')}
           </p>
           {current.delivery_address && <p className="text-stone-600">{current.delivery_address}</p>}

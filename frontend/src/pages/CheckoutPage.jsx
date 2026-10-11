@@ -3,12 +3,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { errorMessage, fieldErrors } from '../api/client'
-import { ordersApi } from '../api/resources'
+import { deliveryApi, ordersApi } from '../api/resources'
 import { Alert, Button, Field, Loader } from '../components/ui'
 import { useAuth } from '../context/AuthProvider'
 import { useCart } from '../context/CartProvider'
+import { useFetch } from '../hooks/useFetch'
 import { formatPrice } from '../utils/format'
-import { deliveryFee, paymentOptions } from '../utils/orders'
+import { deliveryFee, paymentOptions, tooFewPairsAbroad } from '../utils/orders'
 
 function Choice({ checked, onChange, name, value, title, text, Icon }) {
   return (
@@ -35,7 +36,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
     delivery_mode: 'LIVRAISON',
-    delivery_zone: 'DOUALA',
+    delivery_city: 'DOUALA',
     delivery_address: '',
     phone: user.phone ?? '',
     payment_method: 'A_LA_LIVRAISON',
@@ -43,13 +44,24 @@ export default function CheckoutPage() {
   const [error, setError] = useState('')
   const [errors, setErrors] = useState({})
   const [sending, setSending] = useState(false)
+  // Destinations et regles de livraison fournies par le serveur
+  const { data: delivery } = useFetch(deliveryApi.get, 'delivery')
 
   if (!ready) return <Loader />
   if (cart.items.length === 0 && !sending) return <Navigate to="/panier" replace />
 
   const set = (changes) => setForm((current) => ({ ...current, ...changes }))
   const changeMode = (mode) => set({ delivery_mode: mode, payment_method: paymentOptions(mode)[0] })
-  const fee = deliveryFee(form.delivery_mode, cart.total)
+  const destinations = delivery?.destinations ?? []
+  const rules = delivery?.rules
+  const zone = destinations.find((destination) => destination.key === form.delivery_city)?.zone
+  const pairs = cart.items.reduce((sum, item) => sum + item.quantity, 0)
+  const fee = deliveryFee(form.delivery_mode, zone, cart.total, pairs, rules)
+  const blocked = form.delivery_mode === 'LIVRAISON' && tooFewPairsAbroad(zone, pairs, rules)
+  const groups = ['DOUALA', 'AUTRE_VILLE', 'ETRANGER'].map((group) => [
+    group,
+    destinations.filter((destination) => destination.zone === group),
+  ])
 
   const submit = async (event) => {
     event.preventDefault()
@@ -102,19 +114,37 @@ export default function CheckoutPage() {
           {form.delivery_mode === 'LIVRAISON' && (
             <fieldset className="space-y-4">
               <legend className="text-lg font-bold text-ink">{t('checkout.address')}</legend>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {['DOUALA', 'AUTRE_VILLE'].map((zone) => (
-                  <Choice
-                    key={zone}
-                    name="delivery_zone"
-                    value={zone}
-                    checked={form.delivery_zone === zone}
-                    onChange={() => set({ delivery_zone: zone })}
-                    title={t(`checkout.zones.${zone}`)}
-                    text={formatPrice(deliveryFee('LIVRAISON', cart.total))}
-                  />
-                ))}
+              <div>
+                <label htmlFor="delivery-city" className="mb-1.5 block text-sm font-medium text-stone-700">
+                  {t('checkout.city')}
+                </label>
+                <select
+                  id="delivery-city"
+                  value={form.delivery_city}
+                  onChange={(event) => set({ delivery_city: event.target.value })}
+                  className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm"
+                >
+                  {groups.map(([group, items]) => (
+                    <optgroup key={group} label={t(`checkout.zones.${group}`)}>
+                      {items.map((destination) => (
+                        <option key={destination.key} value={destination.key}>
+                          {destination.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                {errors.delivery_city && <p className="mt-1.5 text-sm text-red-700">{errors.delivery_city}</p>}
+                {rules && (
+                  <ul className="mt-2 space-y-0.5 text-xs text-stone-500">
+                    <li>{t('checkout.rules.douala', { fee: formatPrice(rules.douala_fee) })}</li>
+                    <li>{t('checkout.rules.cities', { rate: rules.rates.AUTRE_VILLE })}</li>
+                    <li>{t('checkout.rules.abroad', { rate: rules.rates.ETRANGER, count: rules.min_pairs_abroad })}</li>
+                    <li>{t('checkout.rules.bulk', { discount: rules.bulk_discount, count: rules.bulk_pairs })}</li>
+                  </ul>
+                )}
               </div>
+              {blocked && <Alert>{t('checkout.abroadMinimum', { count: rules.min_pairs_abroad, pairs })}</Alert>}
               <Field
                 label={t('checkout.addressLabel')}
                 placeholder={t('checkout.addressPlaceholder')}
@@ -183,7 +213,12 @@ export default function CheckoutPage() {
               <dd>{formatPrice(Number(cart.total) + fee)}</dd>
             </div>
           </dl>
-          <Button type="submit" loading={sending} className="mt-6 w-full py-3">
+          {form.delivery_mode === 'LIVRAISON' && pairs >= (rules?.bulk_pairs ?? Infinity) && (
+            <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+              {t('checkout.bulkApplied', { discount: rules.bulk_discount })}
+            </p>
+          )}
+          <Button type="submit" loading={sending} disabled={blocked || !rules} className="mt-6 w-full py-3">
             {t('checkout.confirm')}
           </Button>
         </aside>

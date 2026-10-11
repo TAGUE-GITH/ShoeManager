@@ -30,6 +30,10 @@ export const ordersApi = {
   cancel: (id) => api.post(`/orders/${id}/cancel/`).then(data),
 }
 
+export const deliveryApi = {
+  get: () => api.get('/delivery/').then(data),
+}
+
 export const manageOrdersApi = {
   list: (params) => api.get('/manage/orders/', { params }).then(data),
   setStatus: (id, status) => api.patch(`/manage/orders/${id}/status/`, { status }).then(data),

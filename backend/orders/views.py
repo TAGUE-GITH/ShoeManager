@@ -1,13 +1,16 @@
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema
-from rest_framework import mixins, status, viewsets
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from common.permissions import IsStaffMember
 
 from . import services
+from .delivery import DESTINATIONS, rules
 from .models import Order
 from .serializers import ChangeStatusSerializer, ManageOrderSerializer, OrderSerializer, PlaceOrderSerializer
 
@@ -56,3 +59,31 @@ class ManageOrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, views
         payload.is_valid(raise_exception=True)
         order = services.change_status(self.get_object(), payload.validated_data['status'])
         return Response(ManageOrderSerializer(self.get_queryset().get(pk=order.pk)).data)
+
+
+class DeliveryView(APIView):
+    """R8 : destinations de livraison et regles de calcul des frais (affichees avant la commande)."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    @extend_schema(
+        responses=inline_serializer(
+            'Delivery',
+            {
+                'destinations': inline_serializer(
+                    'Destination',
+                    {'key': serializers.CharField(), 'label': serializers.CharField(), 'zone': serializers.CharField()},
+                    many=True,
+                ),
+                'rules': serializers.DictField(),
+            },
+        )
+    )
+    def get(self, request):
+        return Response(
+            {
+                'destinations': [{'key': key, 'label': label, 'zone': zone} for key, label, zone in DESTINATIONS],
+                'rules': rules(),
+            }
+        )

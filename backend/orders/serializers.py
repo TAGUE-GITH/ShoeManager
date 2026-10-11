@@ -1,7 +1,8 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from .models import DeliveryMode, DeliveryZone, Order, OrderItem, OrderStatus, PaymentMethod
+from .delivery import DESTINATIONS
+from .models import DeliveryMode, Order, OrderItem, OrderStatus, PaymentMethod
 from .services import CUSTOMER_CANCELLABLE, next_statuses
 
 # Moyens de paiement possibles pour chaque mode de reception
@@ -13,7 +14,9 @@ PAYMENTS_BY_MODE = {
 
 class PlaceOrderSerializer(serializers.Serializer):
     delivery_mode = serializers.ChoiceField(choices=DeliveryMode.choices)
-    delivery_zone = serializers.ChoiceField(choices=DeliveryZone.choices, required=False, allow_blank=True)
+    delivery_city = serializers.ChoiceField(
+        choices=[(key, label) for key, label, _zone in DESTINATIONS], required=False, allow_blank=True
+    )
     delivery_address = serializers.CharField(max_length=255, required=False, allow_blank=True)
     phone = serializers.CharField(max_length=30)
     payment_method = serializers.ChoiceField(choices=PaymentMethod.choices)
@@ -23,8 +26,8 @@ class PlaceOrderSerializer(serializers.Serializer):
         if attrs['delivery_mode'] == DeliveryMode.LIVRAISON:
             if not attrs.get('delivery_address', '').strip():
                 errors['delivery_address'] = _('Indiquez l’adresse de livraison.')
-            if not attrs.get('delivery_zone'):
-                errors['delivery_zone'] = _('Choisissez la zone de livraison.')
+            if not attrs.get('delivery_city'):
+                errors['delivery_city'] = _('Choisissez la ville ou le pays de livraison.')
         if attrs['payment_method'] not in PAYMENTS_BY_MODE[attrs['delivery_mode']]:
             errors['payment_method'] = _('Ce moyen de paiement n’est pas possible pour ce mode de réception.')
         if errors:
@@ -66,6 +69,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'status_label',
             'delivery_mode',
             'delivery_zone',
+            'delivery_city',
             'delivery_address',
             'phone',
             'payment_method',

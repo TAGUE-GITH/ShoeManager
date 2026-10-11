@@ -22,7 +22,7 @@ def place(client, pair, mode='RETRAIT', quantity=2):
         if mode == 'RETRAIT'
         else {
             'delivery_mode': 'LIVRAISON',
-            'delivery_zone': 'DOUALA',
+            'delivery_city': 'DOUALA',
             'delivery_address': 'Bonapriso',
             'phone': '690000000',
             'payment_method': 'A_LA_LIVRAISON',
