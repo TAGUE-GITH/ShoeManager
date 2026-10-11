@@ -15,3 +15,22 @@ export const catalogApi = {
   brands: () => api.get('/brands/').then(data),
   colors: () => api.get('/colors/').then(data),
 }
+
+export const cartApi = {
+  get: () => api.get('/cart/').then(data),
+  add: (variant, quantity = 1) => api.post('/cart/items/', { variant, quantity }).then(data),
+  update: (id, quantity) => api.patch(`/cart/items/${id}/`, { quantity }).then(data),
+  remove: (id) => api.delete(`/cart/items/${id}/`),
+}
+
+export const ordersApi = {
+  list: () => api.get('/orders/').then(data),
+  get: (id) => api.get(`/orders/${id}/`).then(data),
+  place: (form) => api.post('/orders/', form).then(data),
+  cancel: (id) => api.post(`/orders/${id}/cancel/`).then(data),
+}
+
+export const manageOrdersApi = {
+  list: (params) => api.get('/manage/orders/', { params }).then(data),
+  setStatus: (id, status) => api.patch(`/manage/orders/${id}/status/`, { status }).then(data),
+}

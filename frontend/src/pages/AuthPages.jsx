@@ -5,6 +5,7 @@ import { errorMessage, fieldErrors } from '../api/client'
 import { LogoMark } from '../components/Logo'
 import { Alert, Button, Field } from '../components/ui'
 import { useAuth } from '../context/AuthProvider'
+import { MyOrders } from './OrderPages'
 
 function AuthCard({ title, subtitle, children }) {
   return (
@@ -161,7 +162,12 @@ export function AccountPage() {
           <p className="mt-1 text-sm text-stone-300">{t('account.loyaltyText')}</p>
         </section>
       </div>
-      <p className="mt-8 rounded-2xl bg-brand-50 p-5 text-sm text-brand-800">{t('account.soon')}</p>
+      <section className="mt-10">
+        <h2 className="text-xl font-bold text-ink">{t('orders.mine')}</h2>
+        <div className="mt-4">
+          <MyOrders />
+        </div>
+      </section>
       <Button variant="secondary" className="mt-8" onClick={logout}>
         {t('account.logout')}
       </Button>

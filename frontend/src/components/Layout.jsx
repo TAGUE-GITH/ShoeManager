@@ -1,9 +1,10 @@
-import { Menu, Search, User, X } from 'lucide-react'
+import { ClipboardList, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { catalogApi } from '../api/resources'
 import { useAuth } from '../context/AuthProvider'
+import { useCart } from '../context/CartProvider'
 import { useFetch } from '../hooks/useFetch'
 import { LANGUAGES } from '../i18n'
 import Logo from './Logo'
@@ -60,6 +61,8 @@ function SearchBox({ onSearch }) {
 function Header() {
   const { t } = useTranslation()
   const { user } = useAuth()
+  const { cart } = useCart()
+  const isStaff = ['GERANT', 'VENDEUR'].includes(user?.role)
   const [open, setOpen] = useState(false)
   const { data: categories } = useFetch(catalogApi.categories, 'categories')
 
@@ -87,6 +90,28 @@ function Header() {
           <div className="hidden sm:block">
             <LanguageSwitcher />
           </div>
+          {isStaff && (
+            <Link
+              to="/gestion/commandes"
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100"
+            >
+              <ClipboardList className="size-5" aria-hidden />
+              <span className="hidden xl:inline">{t('nav.shopSpace')}</span>
+              <span className="sr-only xl:hidden">{t('nav.shopSpace')}</span>
+            </Link>
+          )}
+          <Link
+            to="/panier"
+            className="relative rounded-xl p-2 text-stone-700 hover:bg-stone-100"
+            aria-label={t('nav.cart', { count: cart.count })}
+          >
+            <ShoppingBag className="size-5" aria-hidden />
+            {cart.count > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex min-w-5 items-center justify-center rounded-full bg-brand-700 px-1 text-[11px] font-bold text-white">
+                {cart.count}
+              </span>
+            )}
+          </Link>
           <Link
             to={user ? '/compte' : '/connexion'}
             className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100"

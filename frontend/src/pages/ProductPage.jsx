@@ -1,10 +1,13 @@
 import { CalendarClock, ChevronRight, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { errorMessage, fieldErrors } from '../api/client'
 import { catalogApi } from '../api/resources'
 import ShoeIllustration from '../components/ShoeIllustration'
 import { Alert, Button, Loader } from '../components/ui'
+import { useAuth } from '../context/AuthProvider'
+import { useCart } from '../context/CartProvider'
 import { useFetch } from '../hooks/useFetch'
 import { formatPrice, shoeShape } from '../utils/format'
 
@@ -21,6 +24,12 @@ export default function ProductPage() {
   const { data: product, error, loading } = useFetch(() => catalogApi.product(slug), slug)
   const [colorId, setColorId] = useState(null)
   const [variantId, setVariantId] = useState(null)
+  const { user } = useAuth()
+  const { add } = useCart()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [adding, setAdding] = useState(false)
+  const [feedback, setFeedback] = useState({ type: '', text: '' })
 
   if (loading) return <Loader />
   if (error) {
@@ -38,6 +47,24 @@ export default function ProductPage() {
   const color = colors.find((c) => c.id === colorId) ?? colors[0]
   const variants = product.variants.filter((variant) => variant.color.id === color?.id)
   const selected = variants.find((variant) => variant.id === variantId)
+
+  // US-09 : il faut etre connecte pour avoir un panier ; on revient ensuite sur ce produit
+  const addToCart = async () => {
+    if (!user) {
+      navigate('/connexion', { state: { from: location.pathname } })
+      return
+    }
+    setAdding(true)
+    setFeedback({ type: '', text: '' })
+    try {
+      await add(selected.id)
+      setFeedback({ type: 'success', text: t('product.added', { size: selected.size }) })
+    } catch (err) {
+      setFeedback({ type: 'error', text: fieldErrors(err).quantity ?? errorMessage(err) })
+    } finally {
+      setAdding(false)
+    }
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -129,7 +156,7 @@ export default function ProductPage() {
           </fieldset>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <Button disabled title={t('product.soon')}>
+            <Button onClick={addToCart} loading={adding} disabled={!selected}>
               <ShoppingBag className="size-4" aria-hidden />
               {t('product.addToCart')}
             </Button>
@@ -138,7 +165,23 @@ export default function ProductPage() {
               {t('product.reserve')}
             </Button>
           </div>
-          <p className="mt-3 text-xs text-stone-500">{t('product.soonNote')}</p>
+          {!selected && <p className="mt-3 text-xs text-stone-500">{t('product.chooseSize')}</p>}
+          {feedback.text && (
+          <div className="mt-4">
+            <Alert type={feedback.type}>
+              {feedback.text}
+              {feedback.type === 'success' && (
+                <>
+                  {' '}
+                  <Link to="/panier" className="font-semibold underline">
+                    {t('product.seeCart')}
+                  </Link>
+                </>
+              )}
+            </Alert>
+          </div>
+          )}
+          <p className="mt-3 text-xs text-stone-500">{t('product.reserveSoon')}</p>
         </div>
       </div>
     </div>
