@@ -41,6 +41,10 @@ export default {
     categories: 'Nos rayons',
     latest: 'Nouveautés',
     seeAll: 'Tout voir',
+    shopTitle: 'Notre boutique à Douala',
+    shopText:
+      'Venez essayer vos paires : des centaines de modèles en rayon, pour hommes, femmes et enfants, et une équipe pour vous conseiller la bonne pointure.',
+    shopPoints: ['Grandes marques et modèles du quotidien', 'Toutes les pointures, du 28 au 45', 'Paires mises de côté 48 h pour l’essayage'],
     services: {
       delivery: 'Livraison rapide',
       deliveryText: 'Douala 1 000 FCFA, autres villes 10 % du montant',

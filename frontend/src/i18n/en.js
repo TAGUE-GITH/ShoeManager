@@ -41,6 +41,10 @@ export default {
     categories: 'Our departments',
     latest: 'New arrivals',
     seeAll: 'See all',
+    shopTitle: 'Our shop in Douala',
+    shopText:
+      'Come and try your pairs on: hundreds of models on the shelves for men, women and kids, and a team to help you find the right size.',
+    shopPoints: ['Big brands and everyday models', 'Every size, from 28 to 45', 'Pairs set aside 48 h for fitting'],
     services: {
       delivery: 'Fast delivery',
       deliveryText: 'Douala 1,000 XAF, other cities 10% of the amount',

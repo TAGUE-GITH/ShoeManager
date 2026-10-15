@@ -8,6 +8,12 @@ from accounts.models import Role, User
 PASSWORD = 'motdepasse-solide-2026'
 
 
+@pytest.fixture(autouse=True)
+def no_demo_photo_download(settings):
+    """Les tests ne telechargent jamais de photos sur Internet."""
+    settings.DEMO_PHOTOS = False
+
+
 @pytest.fixture
 def api():
     return APIClient()

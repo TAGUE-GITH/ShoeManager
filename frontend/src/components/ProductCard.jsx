@@ -12,9 +12,14 @@ export default function ProductCard({ product }) {
       to={`/produits/${product.slug}`}
       className="group flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200 transition hover:-translate-y-0.5 hover:shadow-lg hover:ring-brand-200"
     >
-      <div className="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-stone-100 to-brand-50 p-6">
+      <div className={`relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-stone-100 to-brand-50 ${product.image ? '' : 'p-6'}`}>
         {product.image ? (
-          <img src={product.image} alt={product.name} className="h-full w-full object-contain" loading="lazy" />
+          <img
+            src={product.image}
+            alt={product.name}
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
         ) : (
           <ShoeIllustration
             shape={shoeShape(product.category)}

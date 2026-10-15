@@ -12,6 +12,7 @@ from django.conf import settings
 from django.db import transaction
 
 from accounts.models import Role, User
+from catalog.demo_photos import add_demo_photos
 from catalog.models import Brand, Category, Color, Product, Variant
 
 DEMO_PASSWORD = 'demo-franckshoese'
@@ -159,6 +160,9 @@ def seed():
                 draw = rng.random()
                 stock = 0 if draw < 0.05 else rng.randint(1, 3) if draw < 0.12 else rng.randint(4, 12)
                 Variant.objects.create(product=product, size=Decimal(size), color=colors[color_name], stock=stock)
+
+    # Vraies photos des modeles (licence Unsplash) a la place des illustrations
+    add_demo_photos()
 
     for role, login, first_name, last_name in ACCOUNTS:
         email = f'{login}@franckshoese.example'

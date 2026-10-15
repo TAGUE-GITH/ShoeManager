@@ -167,6 +167,8 @@ PASSWORD_RESET_TIMEOUT = 30 * 60
 
 # Bouton « Essayer la demo » : connexion a un compte de demonstration (US-22)
 DEMO_ENABLED = os.environ.get('DEMO_ENABLED', 'true').lower() == 'true'
+# Photos des chaussures de demonstration telechargees depuis Unsplash (desactive pendant les tests)
+DEMO_PHOTOS = os.environ.get('DEMO_PHOTOS', 'true').lower() == 'true'
 
 # Seul le frontend peut appeler l'API depuis un navigateur
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5173')
